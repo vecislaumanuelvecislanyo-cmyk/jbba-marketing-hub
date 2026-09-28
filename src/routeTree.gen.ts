@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
 import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
+import { Route as AuthenticatedCalendarioRouteImport } from './routes/_authenticated/calendario'
 import { Route as AuthenticatedCampanhasRouteImport } from './routes/_authenticated/campanhas'
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
@@ -25,6 +26,7 @@ import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedMinhaAtividadeRouteImport } from './routes/_authenticated/minha-atividade'
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
+import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
 import { Route as AuthenticatedVisitasRouteImport } from './routes/_authenticated/visitas'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as AuthenticatedClientesIdRouteImport } from './routes/_authenticated/clientes.$id'
@@ -51,6 +53,11 @@ const AuthenticatedAtividadesRoute = AuthenticatedAtividadesRouteImport.update({
 const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
   id: '/auditoria',
   path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedCalendarioRoute = AuthenticatedCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedCampanhasRoute = AuthenticatedCampanhasRouteImport.update({
@@ -111,6 +118,11 @@ const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   path: '/propostas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedVisitasRoute = AuthenticatedVisitasRouteImport.update({
   id: '/visitas',
   path: '/visitas',
@@ -133,6 +145,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
   '/campanhas': typeof AuthenticatedCampanhasRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contratos': typeof AuthenticatedContratosRoute
@@ -144,6 +157,7 @@ export interface FileRoutesByFullPath {
   '/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
@@ -153,6 +167,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/atividades': typeof AuthenticatedAtividadesRoute
   '/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/calendario': typeof AuthenticatedCalendarioRoute
   '/campanhas': typeof AuthenticatedCampanhasRoute
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contratos': typeof AuthenticatedContratosRoute
@@ -164,6 +179,7 @@ export interface FileRoutesByTo {
   '/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
+  '/relatorios': typeof AuthenticatedRelatoriosRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/clientes': typeof AuthenticatedClientesIndexRoute
@@ -175,6 +191,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_authenticated/atividades': typeof AuthenticatedAtividadesRoute
   '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
+  '/_authenticated/calendario': typeof AuthenticatedCalendarioRoute
   '/_authenticated/campanhas': typeof AuthenticatedCampanhasRoute
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRoute
@@ -186,6 +203,7 @@ export interface FileRoutesById {
   '/_authenticated/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
+  '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
   '/_authenticated/visitas': typeof AuthenticatedVisitasRoute
   '/_authenticated/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
@@ -197,6 +215,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/atividades'
     | '/auditoria'
+    | '/calendario'
     | '/campanhas'
     | '/configuracoes'
     | '/contratos'
@@ -208,6 +227,7 @@ export interface FileRouteTypes {
     | '/minha-atividade'
     | '/notificacoes'
     | '/propostas'
+    | '/relatorios'
     | '/visitas'
     | '/clientes/$id'
     | '/clientes/'
@@ -217,6 +237,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/atividades'
     | '/auditoria'
+    | '/calendario'
     | '/campanhas'
     | '/configuracoes'
     | '/contratos'
@@ -228,6 +249,7 @@ export interface FileRouteTypes {
     | '/minha-atividade'
     | '/notificacoes'
     | '/propostas'
+    | '/relatorios'
     | '/visitas'
     | '/clientes/$id'
     | '/clientes'
@@ -238,6 +260,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_authenticated/atividades'
     | '/_authenticated/auditoria'
+    | '/_authenticated/calendario'
     | '/_authenticated/campanhas'
     | '/_authenticated/configuracoes'
     | '/_authenticated/contratos'
@@ -249,6 +272,7 @@ export interface FileRouteTypes {
     | '/_authenticated/minha-atividade'
     | '/_authenticated/notificacoes'
     | '/_authenticated/propostas'
+    | '/_authenticated/relatorios'
     | '/_authenticated/visitas'
     | '/_authenticated/clientes/$id'
     | '/_authenticated/clientes/'
@@ -295,6 +319,13 @@ declare module '@tanstack/react-router' {
       path: '/auditoria'
       fullPath: '/auditoria'
       preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/calendario': {
+      id: '/_authenticated/calendario'
+      path: '/calendario'
+      fullPath: '/calendario'
+      preLoaderRoute: typeof AuthenticatedCalendarioRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/campanhas': {
@@ -374,6 +405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPropostasRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios': {
+      id: '/_authenticated/relatorios'
+      path: '/relatorios'
+      fullPath: '/relatorios'
+      preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/visitas': {
       id: '/_authenticated/visitas'
       path: '/visitas'
@@ -401,6 +439,7 @@ declare module '@tanstack/react-router' {
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtividadesRoute: typeof AuthenticatedAtividadesRoute
   AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
+  AuthenticatedCalendarioRoute: typeof AuthenticatedCalendarioRoute
   AuthenticatedCampanhasRoute: typeof AuthenticatedCampanhasRoute
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
@@ -412,6 +451,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMinhaAtividadeRoute: typeof AuthenticatedMinhaAtividadeRoute
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
+  AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
   AuthenticatedVisitasRoute: typeof AuthenticatedVisitasRoute
   AuthenticatedClientesIdRoute: typeof AuthenticatedClientesIdRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
@@ -420,6 +460,7 @@ interface AuthenticatedRouteRouteChildren {
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtividadesRoute: AuthenticatedAtividadesRoute,
   AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
+  AuthenticatedCalendarioRoute: AuthenticatedCalendarioRoute,
   AuthenticatedCampanhasRoute: AuthenticatedCampanhasRoute,
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRoute,
@@ -431,6 +472,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMinhaAtividadeRoute: AuthenticatedMinhaAtividadeRoute,
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
+  AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
   AuthenticatedVisitasRoute: AuthenticatedVisitasRoute,
   AuthenticatedClientesIdRoute: AuthenticatedClientesIdRoute,
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
