@@ -13,14 +13,21 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedAtividadesRouteImport } from './routes/_authenticated/atividades'
+import { Route as AuthenticatedAuditoriaRouteImport } from './routes/_authenticated/auditoria'
 import { Route as AuthenticatedCampanhasRouteImport } from './routes/_authenticated/campanhas'
+import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedContratosRouteImport } from './routes/_authenticated/contratos'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedEquipaRouteImport } from './routes/_authenticated/equipa'
 import { Route as AuthenticatedFollowupsRouteImport } from './routes/_authenticated/followups'
+import { Route as AuthenticatedLeadsRouteImport } from './routes/_authenticated/leads'
+import { Route as AuthenticatedMetasRouteImport } from './routes/_authenticated/metas'
+import { Route as AuthenticatedMinhaAtividadeRouteImport } from './routes/_authenticated/minha-atividade'
+import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedVisitasRouteImport } from './routes/_authenticated/visitas'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
+import { Route as AuthenticatedClientesIdRouteImport } from './routes/_authenticated/clientes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -41,11 +48,22 @@ const AuthenticatedAtividadesRoute = AuthenticatedAtividadesRouteImport.update({
   path: '/atividades',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedAuditoriaRoute = AuthenticatedAuditoriaRouteImport.update({
+  id: '/auditoria',
+  path: '/auditoria',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedCampanhasRoute = AuthenticatedCampanhasRouteImport.update({
   id: '/campanhas',
   path: '/campanhas',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConfiguracoesRoute =
+  AuthenticatedConfiguracoesRouteImport.update({
+    id: '/configuracoes',
+    path: '/configuracoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedContratosRoute = AuthenticatedContratosRouteImport.update({
   id: '/contratos',
   path: '/contratos',
@@ -66,6 +84,28 @@ const AuthenticatedFollowupsRoute = AuthenticatedFollowupsRouteImport.update({
   path: '/followups',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedLeadsRoute = AuthenticatedLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMetasRoute = AuthenticatedMetasRouteImport.update({
+  id: '/metas',
+  path: '/metas',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedMinhaAtividadeRoute =
+  AuthenticatedMinhaAtividadeRouteImport.update({
+    id: '/minha-atividade',
+    path: '/minha-atividade',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedNotificacoesRoute =
+  AuthenticatedNotificacoesRouteImport.update({
+    id: '/notificacoes',
+    path: '/notificacoes',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedPropostasRoute = AuthenticatedPropostasRouteImport.update({
   id: '/propostas',
   path: '/propostas',
@@ -82,31 +122,50 @@ const AuthenticatedClientesIndexRoute =
     path: '/clientes/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedClientesIdRoute = AuthenticatedClientesIdRouteImport.update({
+  id: '/clientes/$id',
+  path: '/clientes/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/atividades': typeof AuthenticatedAtividadesRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/campanhas': typeof AuthenticatedCampanhasRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/equipa': typeof AuthenticatedEquipaRoute
   '/followups': typeof AuthenticatedFollowupsRoute
+  '/leads': typeof AuthenticatedLeadsRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/visitas': typeof AuthenticatedVisitasRoute
+  '/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/atividades': typeof AuthenticatedAtividadesRoute
+  '/auditoria': typeof AuthenticatedAuditoriaRoute
   '/campanhas': typeof AuthenticatedCampanhasRoute
+  '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/contratos': typeof AuthenticatedContratosRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/equipa': typeof AuthenticatedEquipaRoute
   '/followups': typeof AuthenticatedFollowupsRoute
+  '/leads': typeof AuthenticatedLeadsRoute
+  '/metas': typeof AuthenticatedMetasRoute
+  '/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
+  '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/visitas': typeof AuthenticatedVisitasRoute
+  '/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/clientes': typeof AuthenticatedClientesIndexRoute
 }
 export interface FileRoutesById {
@@ -115,13 +174,20 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/atividades': typeof AuthenticatedAtividadesRoute
+  '/_authenticated/auditoria': typeof AuthenticatedAuditoriaRoute
   '/_authenticated/campanhas': typeof AuthenticatedCampanhasRoute
+  '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/contratos': typeof AuthenticatedContratosRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/equipa': typeof AuthenticatedEquipaRoute
   '/_authenticated/followups': typeof AuthenticatedFollowupsRoute
+  '/_authenticated/leads': typeof AuthenticatedLeadsRoute
+  '/_authenticated/metas': typeof AuthenticatedMetasRoute
+  '/_authenticated/minha-atividade': typeof AuthenticatedMinhaAtividadeRoute
+  '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/visitas': typeof AuthenticatedVisitasRoute
+  '/_authenticated/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/_authenticated/clientes/': typeof AuthenticatedClientesIndexRoute
 }
 export interface FileRouteTypes {
@@ -130,26 +196,40 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/atividades'
+    | '/auditoria'
     | '/campanhas'
+    | '/configuracoes'
     | '/contratos'
     | '/dashboard'
     | '/equipa'
     | '/followups'
+    | '/leads'
+    | '/metas'
+    | '/minha-atividade'
+    | '/notificacoes'
     | '/propostas'
     | '/visitas'
+    | '/clientes/$id'
     | '/clientes/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/atividades'
+    | '/auditoria'
     | '/campanhas'
+    | '/configuracoes'
     | '/contratos'
     | '/dashboard'
     | '/equipa'
     | '/followups'
+    | '/leads'
+    | '/metas'
+    | '/minha-atividade'
+    | '/notificacoes'
     | '/propostas'
     | '/visitas'
+    | '/clientes/$id'
     | '/clientes'
   id:
     | '__root__'
@@ -157,13 +237,20 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/_authenticated/atividades'
+    | '/_authenticated/auditoria'
     | '/_authenticated/campanhas'
+    | '/_authenticated/configuracoes'
     | '/_authenticated/contratos'
     | '/_authenticated/dashboard'
     | '/_authenticated/equipa'
     | '/_authenticated/followups'
+    | '/_authenticated/leads'
+    | '/_authenticated/metas'
+    | '/_authenticated/minha-atividade'
+    | '/_authenticated/notificacoes'
     | '/_authenticated/propostas'
     | '/_authenticated/visitas'
+    | '/_authenticated/clientes/$id'
     | '/_authenticated/clientes/'
   fileRoutesById: FileRoutesById
 }
@@ -203,11 +290,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAtividadesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/auditoria': {
+      id: '/_authenticated/auditoria'
+      path: '/auditoria'
+      fullPath: '/auditoria'
+      preLoaderRoute: typeof AuthenticatedAuditoriaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/campanhas': {
       id: '/_authenticated/campanhas'
       path: '/campanhas'
       fullPath: '/campanhas'
       preLoaderRoute: typeof AuthenticatedCampanhasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/configuracoes': {
+      id: '/_authenticated/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/configuracoes'
+      preLoaderRoute: typeof AuthenticatedConfiguracoesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/contratos': {
@@ -238,6 +339,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFollowupsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/leads': {
+      id: '/_authenticated/leads'
+      path: '/leads'
+      fullPath: '/leads'
+      preLoaderRoute: typeof AuthenticatedLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/metas': {
+      id: '/_authenticated/metas'
+      path: '/metas'
+      fullPath: '/metas'
+      preLoaderRoute: typeof AuthenticatedMetasRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/minha-atividade': {
+      id: '/_authenticated/minha-atividade'
+      path: '/minha-atividade'
+      fullPath: '/minha-atividade'
+      preLoaderRoute: typeof AuthenticatedMinhaAtividadeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notificacoes': {
+      id: '/_authenticated/notificacoes'
+      path: '/notificacoes'
+      fullPath: '/notificacoes'
+      preLoaderRoute: typeof AuthenticatedNotificacoesRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/propostas': {
       id: '/_authenticated/propostas'
       path: '/propostas'
@@ -259,30 +388,51 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientesIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/clientes/$id': {
+      id: '/_authenticated/clientes/$id'
+      path: '/clientes/$id'
+      fullPath: '/clientes/$id'
+      preLoaderRoute: typeof AuthenticatedClientesIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAtividadesRoute: typeof AuthenticatedAtividadesRoute
+  AuthenticatedAuditoriaRoute: typeof AuthenticatedAuditoriaRoute
   AuthenticatedCampanhasRoute: typeof AuthenticatedCampanhasRoute
+  AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedContratosRoute: typeof AuthenticatedContratosRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEquipaRoute: typeof AuthenticatedEquipaRoute
   AuthenticatedFollowupsRoute: typeof AuthenticatedFollowupsRoute
+  AuthenticatedLeadsRoute: typeof AuthenticatedLeadsRoute
+  AuthenticatedMetasRoute: typeof AuthenticatedMetasRoute
+  AuthenticatedMinhaAtividadeRoute: typeof AuthenticatedMinhaAtividadeRoute
+  AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedVisitasRoute: typeof AuthenticatedVisitasRoute
+  AuthenticatedClientesIdRoute: typeof AuthenticatedClientesIdRoute
   AuthenticatedClientesIndexRoute: typeof AuthenticatedClientesIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAtividadesRoute: AuthenticatedAtividadesRoute,
+  AuthenticatedAuditoriaRoute: AuthenticatedAuditoriaRoute,
   AuthenticatedCampanhasRoute: AuthenticatedCampanhasRoute,
+  AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedContratosRoute: AuthenticatedContratosRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEquipaRoute: AuthenticatedEquipaRoute,
   AuthenticatedFollowupsRoute: AuthenticatedFollowupsRoute,
+  AuthenticatedLeadsRoute: AuthenticatedLeadsRoute,
+  AuthenticatedMetasRoute: AuthenticatedMetasRoute,
+  AuthenticatedMinhaAtividadeRoute: AuthenticatedMinhaAtividadeRoute,
+  AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedVisitasRoute: AuthenticatedVisitasRoute,
+  AuthenticatedClientesIdRoute: AuthenticatedClientesIdRoute,
   AuthenticatedClientesIndexRoute: AuthenticatedClientesIndexRoute,
 }
 
