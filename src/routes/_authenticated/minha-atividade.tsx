@@ -42,7 +42,7 @@ function MyActivity() {
   const mine = <T extends Record<string, unknown>>(rows: T[]) => rows.filter((r) => r.employee_id === me.employeeId);
   const t = today();
   const fups = mine(d.followups).filter((f) => f.status === "pendente").sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
-  const visits = mine(d.visits).filter((v) => v.status === "agendada").sort((a, b) => String(a.scheduled_at).localeCompare(String(b.scheduled_at)));
+  const visits = mine(d.visits).filter((v) => v.status === "pendente").sort((a, b) => String(a.scheduled_at).localeCompare(String(b.scheduled_at)));
   const targets = d.targets.filter((x) => x.employee_id === me.employeeId && x.period_start <= t && x.period_end >= t);
   const activityRows = (() => {
     const now = new Date(); const start = new Date(now); start.setHours(0, 0, 0, 0);
