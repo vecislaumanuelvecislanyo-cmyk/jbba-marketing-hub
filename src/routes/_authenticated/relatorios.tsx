@@ -9,6 +9,8 @@ import { type EntityConfig } from "@/components/app/entity-page";
 import { useTable } from "@/lib/data";
 import { analyzeReport } from "@/lib/ai-report";
 import { pageHead } from "@/lib/head";
+import { useMe } from "@/lib/auth";
+import { isManager } from "@/lib/rbac";
 import { fmtDate } from "@/lib/format";
 
 const reportsConfig: EntityConfig = {
@@ -40,6 +42,7 @@ const reportsConfig: EntityConfig = {
 };
 
 function AiReportButton() {
+  const me = useMe();
   const q = useTable("reports", { order: "period_start" });
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -65,6 +68,8 @@ function AiReportButton() {
       toast.error(error instanceof Error ? error.message : "Não foi possível analisar.");
     } finally { setBusy(false); }
   }
+
+  if (!isManager(me.roles)) return null;
 
   return <>
     <Button variant="outline" onClick={run} disabled={busy}><BrainCircuit />{busy ? "A analisar…" : "Analisar IA"}</Button>
