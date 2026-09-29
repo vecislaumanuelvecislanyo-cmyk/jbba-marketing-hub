@@ -40,7 +40,7 @@ function Dashboard() {
       leads: leads.length,
       qualified: leads.filter((l) => ADVANCED.includes(l.stage)).length,
       meetings: d.activities.filter((a) => a.type === "reuniao" && within(a.activity_date, range)).length,
-      visits: d.visits.filter((v) => v.status === "realizada" && within(v.scheduled_at, range)).length,
+      visits: d.visits.filter((v) => v.status === "aprovado" && within(v.scheduled_at, range)).length,
       proposals: d.proposals.filter((p) => p.status !== "rascunho" && within(p.sent_at ?? p.created_at, range)).length,
       negotiation: d.leads.filter((l) => l.stage === "negociacao").length,
       contracts: contracts.length,
@@ -111,7 +111,7 @@ function Dashboard() {
         <KpiCard label="Conversão" value={fmtPct(k.conversion)} hint="ganhos / fechados" icon={Percent} />
         <KpiCard label="Follow-ups" value={k.pending} hint={`${k.overdue} em atraso`} icon={BellRing} />
         <KpiCard label="Metas" value={fmtPct(k.goals)} hint="cumprimento médio" icon={Trophy} />
-        <KpiCard label="Agenda" value={d.visits.filter((v) => v.status === "agendada").length} hint="visitas agendadas" icon={CalendarCheck} />
+        <KpiCard label="Agenda" value={d.visits.filter((v) => v.status === "pendente").length} hint="visitas agendadas" icon={CalendarCheck} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
