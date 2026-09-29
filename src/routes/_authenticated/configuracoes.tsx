@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useState } from "react";
-import { ShieldCheck, Trash2 } from "lucide-react";
+import { Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, RequireAccess } from "@/components/app/common";
@@ -12,6 +14,7 @@ import { errMsg, useInvalidate, useLookup, useTable } from "@/lib/data";
 import { pageHead } from "@/lib/head";
 import { ROLE_LABELS, ROLE_ORDER, primaryRole, type AppRole } from "@/lib/rbac";
 import { useMe } from "@/lib/auth";
+import { createManagedUser } from "@/lib/admin-users";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: pageHead("Configurações", "Utilizadores, perfis e permissões."),
@@ -23,6 +26,15 @@ const NONE = "__none__";
 function Settings() {
   const me = useMe();
   const [toDeleteUser, setToDeleteUser] = useState<{ id: string; name: string } | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [newProfile, setNewProfile] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+    role: "visualizador" as AppRole,
+    employeeId: NONE,
+  });
   const profiles = useTable("profiles", { order: "created_at" });
   const roles = useTable("user_roles", { select: "user_id, role" });
   const perms = useTable("permissions", { order: "role", ascending: true });
@@ -30,6 +42,32 @@ function Settings() {
   const empLookup = useLookup("employees");
   const inv = useInvalidate();
   const hasSuperAdmin = (roles.data ?? []).some((x) => x.role === "super_admin");
+
+  async function createProfile() {
+    if (!newProfile.fullName.trim()) return toast.error("Indique o nome completo.");
+    if (!newProfile.email.trim()) return toast.error("Indique o email.");
+    if (newProfile.password.length < 8) return toast.error("A palavra-passe deve ter pelo menos 8 caracteres.");
+    setCreating(true);
+    try {
+      await createManagedUser({
+        data: {
+          fullName: newProfile.fullName.trim(),
+          email: newProfile.email.trim(),
+          password: newProfile.password,
+          role: newProfile.role,
+          employeeId: newProfile.employeeId === NONE ? null : newProfile.employeeId,
+        },
+      });
+      toast.success("Perfil criado e pronto para iniciar sessão.");
+      setCreateOpen(false);
+      setNewProfile({ fullName: "", email: "", password: "", role: "visualizador", employeeId: NONE });
+      inv("profiles", "user_roles", "employees", "me");
+    } catch (error) {
+      toast.error(errMsg(error));
+    } finally {
+      setCreating(false);
+    }
+  }
 
   async function setRole(userId: string, role: AppRole) {
     if (userId === me.userId && role !== me.role) return toast.error("Não pode alterar o seu próprio perfil.");
@@ -65,7 +103,7 @@ function Settings() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Configurações" description="Gestão de utilizadores, perfis de acesso e associação a colaboradores." />
+      <PageHeader title="Configurações" description="Gestão de utilizadores, perfis de acesso e associação a colaboradores." actions={<Button onClick={() => setCreateOpen(true)}><Plus />Criar perfil</Button>} />
       <Panel title="Utilizadores">
         {!profiles.data?.length ? <EmptyState /> : (
           <div className="overflow-x-auto"><Table>
@@ -98,6 +136,32 @@ function Settings() {
         )}
       </Panel>
       {me.roles.includes("super_admin") && <Panel title="Controlo total do Super ADM"><div className="flex items-start gap-3 rounded-lg border p-4"><ShieldCheck className="mt-0.5 h-5 w-5 text-primary" /><div><div className="font-medium">Super Administrador ativo</div><p className="text-sm text-muted-foreground">Controlo integral de dados, perfis, permissões, estados, eliminações e auditoria.</p></div></div></Panel>}
+      <Dialog open={createOpen} onOpenChange={setCreateOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Criar perfil de utilizador</DialogTitle>
+            <DialogDescription>Crie a conta, atribua o perfil de acesso e associe opcionalmente a um colaborador.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-2 sm:grid-cols-2">
+            <div className="space-y-1.5 sm:col-span-2"><Label>Nome completo</Label><Input value={newProfile.fullName} onChange={(e) => setNewProfile((p) => ({ ...p, fullName: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Email</Label><Input type="email" value={newProfile.email} onChange={(e) => setNewProfile((p) => ({ ...p, email: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Palavra-passe inicial</Label><Input type="password" autoComplete="new-password" value={newProfile.password} onChange={(e) => setNewProfile((p) => ({ ...p, password: e.target.value }))} /></div>
+            <div className="space-y-1.5"><Label>Perfil</Label>
+              <Select value={newProfile.role} onValueChange={(v) => setNewProfile((p) => ({ ...p, role: v as AppRole }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5"><Label>Colaborador associado</Label>
+              <Select value={newProfile.employeeId} onValueChange={(v) => setNewProfile((p) => ({ ...p, employeeId: v }))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent><SelectItem value={NONE}>— Nenhum —</SelectItem>{empLookup.items.filter((e) => !(emps.data ?? []).find((x) => x.id === e.value)?.user_id).map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setCreateOpen(false)}>Cancelar</Button><Button onClick={createProfile} disabled={creating}>{creating ? "A criar…" : "Criar perfil"}</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
       <AlertDialog open={!!toDeleteUser} onOpenChange={(open) => !open && setToDeleteUser(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Apagar conta de utilizador?</AlertDialogTitle><AlertDialogDescription>Esta operação remove a conta de autenticação, perfil, funções e acessos. É irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => toDeleteUser && deleteUserAccount(toDeleteUser.id)}>Apagar definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <Panel title="Matriz de permissões">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
