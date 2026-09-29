@@ -17,7 +17,7 @@ const authMiddleware = createMiddleware({ type: "function" }).server(async ({ ne
   const token = authorization?.replace(/^Bearer\s+/i, "").trim();
   const url = env("SUPABASE_URL"), key = env("SUPABASE_PUBLISHABLE_KEY");
   if (!token || !url || !key) throw new Error("Sessão inválida.");
-  const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { headers: { Authorization: `Bearer ${token}` } } });
+  const client = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, global: { headers: { Authorization: "Bearer " + token } } });
   const { data: { user }, error } = await client.auth.getUser(token);
   if (error || !user) throw new Error("Sessão inválida.");
   const { data: roles } = await client.from("user_roles").select("role").eq("user_id", user.id);
@@ -37,17 +37,17 @@ export const analyzeReport = createServerFn({ method: "POST" })
       "Analisa apenas os dados fornecidos. Não inventes factos.",
       "Responde apenas JSON com summary, attentionPoints e actions.",
       "summary deve ser uma síntese curta. attentionPoints e actions devem ser arrays de strings.",
-      `Tipo: ${data.reportType}`,
-      `Período: ${data.periodStart} a ${data.periodEnd}`,
-      `Total de registos: ${data.count}`,
-      `Estados: ${JSON.stringify(data.statuses)}`,
+      "Tipo: " + data.reportType,
+      "Período: " + data.periodStart + " a " + data.periodEnd,
+      "Total de registos: " + data.count,
+      "Estados: " + JSON.stringify(data.statuses),
     ].join("\n");
     const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
+      headers: { Authorization: "Bearer " + gatewayKey, "Content-Type": "application/json" },
       body: JSON.stringify({ model, temperature: 0.2, messages: [{ role: "system", content: "Responde apenas JSON válido." }, { role: "user", content: prompt }] }),
     });
-    if (!response.ok) throw new Error(`AI Gateway respondeu com ${response.status}.`);
+    if (!response.ok) throw new Error("AI Gateway respondeu com " + response.status + ".");
     const payload = await response.json() as { choices?: Array<{ message?: { content?: string | null } }> };
     const raw = payload.choices?.[0]?.message?.content?.trim();
     if (!raw) throw new Error("A IA não devolveu análise.");
