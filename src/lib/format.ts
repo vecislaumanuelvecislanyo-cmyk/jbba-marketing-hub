@@ -44,3 +44,8 @@ export const LABELS: Record<string, string> = {
 export const label = (v: string | null | undefined) => (v ? LABELS[v] ?? v : "—");
 
 export const opts = (...keys: string[]) => keys.map((k) => ({ value: k, label: label(k) }));
+
+export const PROVINCES = ["Bengo", "Benguela", "Bié", "Cabinda", "Cuando Cubango", "Cuanza Norte", "Cuanza Sul", "Cunene", "Huambo", "Huíla", "Luanda", "Lunda Norte", "Lunda Sul", "Malanje", "Moxico", "Namibe", "Uíge", "Zaire"];
+export const SERVICES = ["Consultoria", "Formação", "Manutenção", "Instalação", "Prestação de serviços", "Outro"];
+export const list = (xs: string[]) => xs.map((v) => ({ value: v, label: v }));
+Object.assign(LABELS, { baixa: "Baixa", media: "Média", alta: "Alta", EXPORT: "Exportação", APPROVE: "Aprovação", REJECT: "Rejeição", CONVERT: "Conversão", ADMIN: "Ação administrativa", aprovado: "Aprovado", rejeitado: "Rejeitado" });
