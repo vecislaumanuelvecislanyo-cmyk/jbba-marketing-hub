@@ -184,7 +184,7 @@ export const activitiesConfig: EntityConfig = {
     { name: "activity_date", label: "Data e hora", type: "datetime", required: true },
     { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     { name: "duration_minutes", label: "Duração (min)", type: "number" },
-    emp(),
+    emp("employee_id", "Atribuir a"),
     { name: "lead_id", label: "Lead", type: "select", lookup: "leads" },
     { name: "client_id", label: "Cliente", type: "select", lookup: "clients" },
     { name: "outcome", label: "Resultado", type: "text", wide: true },
