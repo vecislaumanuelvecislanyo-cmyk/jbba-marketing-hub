@@ -31,6 +31,7 @@ export const stageName = (c: string) => STAGES.find((s) => s.code === c)?.name ?
 
 export const LABELS: Record<string, string> = {
   ativo: "Ativo", inativo: "Inativo", prospeto: "Prospeto",
+  em_analise: "Em análise", processando: "Processando", aprovado: "Aprovado", rejeitado: "Rejeitado",
   agendada: "Agendada", realizada: "Realizada", cancelada: "Cancelada",
   pendente: "Pendente", concluido: "Concluído", cancelado: "Cancelado",
   chamada: "Chamada", email: "Email", reuniao: "Reunião", visita: "Visita", outro: "Outro",
