@@ -8,6 +8,13 @@
       "when": 1790623357174,
       "tag": "0000_jbba_foundation",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1790683918529,
+      "tag": "0001_phase2_fields_permissions",
+      "breakpoints": true
     }
   ]
 }
