@@ -1,13 +1,17 @@
 import { createFileRoute, Link, Outlet, redirect, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { Bell, LogOut } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, KeyRound, LogOut } from "lucide-react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { fetchMe, MeProvider } from "@/lib/auth";
 import { NAV } from "@/lib/nav";
 import { hasAccess, ROLE_LABELS } from "@/lib/rbac";
 import { LoadingState } from "@/components/app/common";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
@@ -25,6 +29,10 @@ export const Route = createFileRoute("/_authenticated")({
 function Layout() {
   const qc = useQueryClient();
   const nav = useNavigate();
+  const [passwordOpen, setPasswordOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
   const me = useQuery({ queryKey: ["me"], queryFn: fetchMe });
   const path = useRouterState({ select: (s) => s.location.pathname });
   const unread = useQuery({
@@ -36,6 +44,17 @@ function Layout() {
     const { data } = supabase.auth.onAuthStateChange((e) => { if (e === "SIGNED_OUT") nav({ to: "/auth", replace: true }); });
     return () => data.subscription.unsubscribe();
   }, [nav]);
+
+  async function changePassword() {
+    if (password.length < 8) return toast.error("A palavra-passe deve ter pelo menos 8 caracteres.");
+    if (password !== confirmPassword) return toast.error("As palavras-passe não coincidem.");
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password });
+    setChangingPassword(false);
+    if (error) return toast.error(error.message);
+    toast.success("Palavra-passe alterada com sucesso.");
+    setPassword(""); setConfirmPassword(""); setPasswordOpen(false);
+  }
 
   async function signOut() {
     await qc.cancelQueries(); qc.clear();
@@ -89,12 +108,14 @@ function Layout() {
             <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-background/90 px-3 backdrop-blur">
               <SidebarTrigger />
               <div className="flex-1" />
+              <Button variant="ghost" size="sm" onClick={() => setPasswordOpen(true)}><KeyRound />Palavra-passe</Button>
               <Button asChild variant="ghost" size="icon" aria-label="Notificações" className="relative">
                 <Link to="/notificacoes"><Bell />{!!unread.data && <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-gold" />}</Link>
               </Button>
               <Button variant="ghost" size="sm" onClick={signOut}><LogOut />Sair</Button>
             </header>
             <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8"><Outlet /></main>
+            <Dialog open={passwordOpen} onOpenChange={setPasswordOpen}><DialogContent className="sm:max-w-md"><DialogHeader><DialogTitle>Alterar palavra-passe</DialogTitle><DialogDescription>Defina uma nova palavra-passe para a sua conta.</DialogDescription></DialogHeader><div className="space-y-4 py-2"><div className="space-y-2"><Label htmlFor="new-password">Nova palavra-passe</Label><Input id="new-password" type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div><div className="space-y-2"><Label htmlFor="confirm-password">Confirmar palavra-passe</Label><Input id="confirm-password" type="password" autoComplete="new-password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} /></div></div><DialogFooter><Button variant="outline" onClick={() => setPasswordOpen(false)}>Cancelar</Button><Button onClick={changePassword} disabled={changingPassword}>{changingPassword ? "A guardar…" : "Alterar palavra-passe"}</Button></DialogFooter></DialogContent></Dialog>
           </div>
         </div>
       </SidebarProvider>
