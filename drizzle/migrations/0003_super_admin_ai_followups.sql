@@ -42,22 +42,43 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.role_permissions TO authenticated
 DROP POLICY IF EXISTS "admin insert roles" ON public.user_roles;
 DROP POLICY IF EXISTS "admin update roles" ON public.user_roles;
 DROP POLICY IF EXISTS "admin delete roles" ON public.user_roles;
+
 CREATE POLICY "admin insert roles" ON public.user_roles
   FOR INSERT TO authenticated
   WITH CHECK (
     public.has_role(auth.uid(), 'super_admin')
-    OR (public.has_role(auth.uid(), 'admin') AND role <> 'super_admin')
+    OR (
+      public.has_role(auth.uid(), 'admin')
+      AND (
+        role <> 'super_admin'
+        OR NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'super_admin')
+      )
+    )
   );
+
 CREATE POLICY "admin update roles" ON public.user_roles
   FOR UPDATE TO authenticated
   USING (
     public.has_role(auth.uid(), 'super_admin')
-    OR (public.has_role(auth.uid(), 'admin') AND role <> 'super_admin')
+    OR (
+      public.has_role(auth.uid(), 'admin')
+      AND (
+        role <> 'super_admin'
+        OR NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'super_admin')
+      )
+    )
   )
   WITH CHECK (
     public.has_role(auth.uid(), 'super_admin')
-    OR (public.has_role(auth.uid(), 'admin') AND role <> 'super_admin')
+    OR (
+      public.has_role(auth.uid(), 'admin')
+      AND (
+        role <> 'super_admin'
+        OR NOT EXISTS (SELECT 1 FROM public.user_roles WHERE role = 'super_admin')
+      )
+    )
   );
+
 CREATE POLICY "admin delete roles" ON public.user_roles
   FOR DELETE TO authenticated
   USING (

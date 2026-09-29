@@ -24,6 +24,7 @@ function Settings() {
   const emps = useTable("employees", { select: "id, full_name, user_id", order: "full_name", ascending: true });
   const empLookup = useLookup("employees");
   const inv = useInvalidate();
+  const hasSuperAdmin = (roles.data ?? []).some((x) => x.role === "super_admin");
 
   async function setRole(userId: string, role: AppRole) {
     if (userId === me.userId && role !== me.role) return toast.error("Não pode alterar o seu próprio perfil.");
@@ -63,7 +64,7 @@ function Settings() {
                   <TableCell>
                     <Select value={r} onValueChange={(v) => setRole(p.id, v as AppRole)}>
                       <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-                      <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin")).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
+                      <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
