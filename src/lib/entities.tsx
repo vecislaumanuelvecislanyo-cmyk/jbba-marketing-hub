@@ -116,7 +116,7 @@ export const leadsConfig: EntityConfig = {
 };
 
 export const visitsConfig: EntityConfig = {
-  table: "visits", title: "Visitas", singular: "visita", order: "scheduled_at",
+  table: "visits", title: "Visitas", singular: "visita", order: "scheduled_at", inspectable: true, invalidatable: true,
   description: "Agendamento e registo de visitas a clientes.",
   searchKeys: ["location", "objective", "outcome"],
   filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
@@ -173,7 +173,7 @@ export const followupsConfig: EntityConfig = {
 };
 
 export const activitiesConfig: EntityConfig = {
-  table: "activities", title: "Atividades", singular: "atividade", order: "activity_date",
+  table: "activities", title: "Atividades", singular: "atividade", order: "activity_date", analyzable: true,
   description: "Registo de chamadas, emails, reuniões e outras interações.",
   searchKeys: ["subject", "description"],
   dateField: "activity_date",
