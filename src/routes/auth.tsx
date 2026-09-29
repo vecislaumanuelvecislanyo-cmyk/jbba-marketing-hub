@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { JbbaLogo } from "@/components/app/jbba-logo";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -36,16 +37,45 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [loginAs, setLoginAs] = useState<"super_admin" | "tecnico" | "ceo">("tecnico");
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryPassword, setRecoveryPassword] = useState("");
+  const [recoveryConfirm, setRecoveryConfirm] = useState("");
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => data.session && nav({ to: "/dashboard" }));
-  }, [nav]);
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
+    });
+    supabase.auth.getSession().then(({ data: sessionData }) => sessionData.session && !recoveryMode && nav({ to: "/dashboard" }));
+    return () => data.subscription.unsubscribe();
+  }, [nav, recoveryMode]);
 
   const roleByLogin: Record<typeof loginAs, AppRole> = {
     super_admin: "super_admin",
     tecnico: "promotor",
     ceo: "diretor_geral",
   };
+
+  async function requestPasswordReset() {
+    const parsed = z.string().trim().email("Email inválido").safeParse(email);
+    if (!parsed.success) return toast.error(parsed.error.issues[0].message);
+    setBusy(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, { redirectTo: `${window.location.origin}/auth` });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Enviámos o link para alterar a palavra-passe para o seu email.");
+  }
+
+  async function finishPasswordRecovery() {
+    if (recoveryPassword.length < 8) return toast.error("A palavra-passe deve ter pelo menos 8 caracteres.");
+    if (recoveryPassword !== recoveryConfirm) return toast.error("As palavras-passe não coincidem.");
+    setBusy(true);
+    const { error } = await supabase.auth.updateUser({ password: recoveryPassword });
+    setBusy(false);
+    if (error) return toast.error(error.message);
+    toast.success("Palavra-passe alterada com sucesso.");
+    setRecoveryMode(false); setRecoveryPassword(""); setRecoveryConfirm("");
+    nav({ to: "/dashboard" });
+  }
 
   async function go(mode: "in" | "up") {
     const p = schema.safeParse({ email, password, full_name: name || undefined });
@@ -70,10 +100,25 @@ function AuthPage() {
     }
   }
 
+  if (recoveryMode) return (
+    <div className="flex min-h-screen items-center justify-center bg-hero p-6">
+      <div className="w-full max-w-md rounded-2xl border bg-background p-6 shadow-xl">
+        <JbbaLogo className="mx-auto mb-6 h-24 w-auto" />
+        <h2 className="text-2xl font-semibold">Alterar a senha</h2>
+        <p className="mt-2 text-sm text-muted-foreground">Defina uma nova palavra-passe para recuperar o acesso à sua conta.</p>
+        <form className="mt-6 space-y-4" onSubmit={(e) => { e.preventDefault(); finishPasswordRecovery(); }}>
+          <div className="space-y-1.5"><Label>Nova palavra-passe</Label><Input type="password" autoComplete="new-password" value={recoveryPassword} onChange={(e) => setRecoveryPassword(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>Confirmar palavra-passe</Label><Input type="password" autoComplete="new-password" value={recoveryConfirm} onChange={(e) => setRecoveryConfirm(e.target.value)} /></div>
+          <Button className="w-full" disabled={busy}>{busy ? "A guardar…" : "Alterar a senha"}</Button>
+        </form>
+      </div>
+    </div>
+  );
+
   return (
     <div className="grid min-h-screen lg:grid-cols-2">
       <div className="hidden flex-col justify-between bg-hero p-12 text-primary-foreground lg:flex">
-        <div className="font-display text-xl font-semibold">JBBA <span className="text-gold">Marketing</span></div>
+        <JbbaLogo className="h-20 w-auto max-w-full" />
         <div>
           <h1 className="text-4xl font-semibold leading-tight">Controlo e gestão da equipa comercial, num só lugar.</h1>
           <p className="mt-4 max-w-md opacity-80">Leads, clientes, visitas, metas e desempenho em tempo real.</p>
@@ -82,6 +127,7 @@ function AuthPage() {
       </div>
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
+          <JbbaLogo className="mb-5 h-24 w-full" />
           <h2 className="mb-2 text-2xl font-semibold">Bem-vindo</h2>
           <Tabs defaultValue="in">
             <div className="mb-4 space-y-2">
@@ -99,6 +145,7 @@ function AuthPage() {
                   {m === "up" && <div className="space-y-1.5"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>}
                   <div className="space-y-1.5"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
                   <div className="space-y-1.5"><Label>Palavra-passe</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+                  {m === "in" && <div className="text-right"><Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={requestPasswordReset} disabled={busy}>Alterar a senha</Button></div>}
                   <Button className="w-full" disabled={busy}>{m === "in" ? "Entrar" : "Criar conta"}</Button>
                 </form>
               </TabsContent>
