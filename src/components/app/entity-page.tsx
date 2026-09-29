@@ -41,6 +41,7 @@ export type EntityConfig = {
   importable?: boolean;
   analyzable?: boolean;
   inspectable?: boolean;
+  createLabel?: string;
   invalidatable?: boolean;
 };
 
@@ -163,7 +164,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
           {config.importable && canWrite && <><input id={"import-" + config.table} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCsv(file); e.currentTarget.value = ""; }} /><Button variant="outline" onClick={openImport}><FileUp />Importar</Button></>}
           {config.analyzable && <Button variant="outline" onClick={() => setAnalysisOpen(true)}><BrainCircuit />Analisar</Button>}
           <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />Exportar</Button>
-          {canWrite && <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus />Novo</Button>}
+          {canWrite && <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus />{config.createLabel ?? "Novo"}</Button>}
         </>}
       />
       <div className="mb-4 flex flex-col gap-2 sm:flex-row">
