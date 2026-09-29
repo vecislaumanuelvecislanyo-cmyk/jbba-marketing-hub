@@ -2,7 +2,7 @@ import { Link } from "@tanstack/react-router";
 import type { EntityConfig } from "@/components/app/entity-page";
 import type { FieldDef } from "@/components/app/entity-form";
 import { StatusBadge } from "@/components/app/common";
-import { fmtDate, fmtMoney, label, opts, STAGES, stageName } from "./format";
+import { fmtDate, fmtMoney, label, list, opts, PROVINCES, SERVICES, STAGES, stageName } from "./format";
 
 const emp = (k = "employee_id", lbl = "Responsável"): FieldDef => ({ name: k, label: lbl, type: "select", lookup: "employees", owner: true });
 const dateRangeCheck = (s: string, e: string) => (v: Record<string, string>) =>
@@ -127,6 +127,8 @@ export const visitsConfig: EntityConfig = {
     { name: "location", label: "Local", type: "text" },
     { name: "objective", label: "Objetivo", type: "textarea" },
     { name: "outcome", label: "Resultado", type: "textarea" },
+    { name: "next_steps", label: "Próximos passos", type: "textarea" },
+    { name: "notes", label: "Observações", type: "textarea" },
   ],
   columns: [
     { key: "scheduled_at", label: "Data", className: "font-medium", render: (r) => fmtDate(r.scheduled_at, true) },
@@ -141,14 +143,17 @@ export const followupsConfig: EntityConfig = {
   table: "followups", title: "Follow-ups", singular: "follow-up", order: "due_date",
   description: "Próximos passos e acompanhamento de oportunidades.",
   searchKeys: ["notes"],
-  filters: [{ key: "status", label: "Estado", options: opts("pendente", "concluido", "cancelado") }, { key: "type", label: "Tipo", options: opts("chamada", "email", "reuniao", "visita", "outro") }],
+  filters: [{ key: "status", label: "Estado", options: opts("pendente", "concluido", "cancelado") }, { key: "priority", label: "Prioridade", options: opts("baixa", "media", "alta") }, { key: "type", label: "Tipo", options: opts("chamada", "email", "reuniao", "visita", "outro") }],
   fields: [
     { name: "due_date", label: "Data limite", type: "date", required: true },
     { name: "type", label: "Tipo", type: "select", options: opts("chamada", "email", "reuniao", "visita", "outro"), required: true, defaultValue: "chamada" },
+    { name: "priority", label: "Prioridade", type: "select", options: opts("baixa", "media", "alta"), required: true, defaultValue: "media" },
     { name: "status", label: "Estado", type: "select", options: opts("pendente", "concluido", "cancelado"), required: true, defaultValue: "pendente" },
+    { name: "reminder_at", label: "Lembrete", type: "datetime" },
     emp(),
     { name: "lead_id", label: "Lead", type: "select", lookup: "leads" },
     { name: "client_id", label: "Cliente", type: "select", lookup: "clients" },
+    { name: "proposal_id", label: "Proposta", type: "select", lookup: "proposals" },
     { name: "notes", label: "Notas", type: "textarea" },
   ],
   columns: [
@@ -157,6 +162,7 @@ export const followupsConfig: EntityConfig = {
       return <span className={late ? "text-destructive" : ""}>{fmtDate(r.due_date)}{late && " · em atraso"}</span>;
     } },
     { key: "type", label: "Tipo", render: (r) => label(r.type) },
+    { key: "priority", label: "Prioridade", render: (r) => <StatusBadge tone={r.priority === "alta" ? "danger" : r.priority === "baixa" ? "neutral" : "warning"} text={label(r.priority)} /> },
     { key: "lead_id", label: "Lead", render: (r, l) => l.leads[r.lead_id] ?? "—" },
     { key: "employee_id", label: "Responsável", render: (r, l) => l.employees[r.employee_id] ?? "—" },
     { key: "notes", label: "Notas", render: (r) => <span className="line-clamp-1 max-w-xs">{r.notes ?? "—"}</span> },
@@ -173,15 +179,18 @@ export const activitiesConfig: EntityConfig = {
     { name: "subject", label: "Assunto", type: "text", required: true, wide: true },
     { name: "type", label: "Tipo", type: "select", options: opts("chamada", "email", "reuniao", "visita", "outro"), required: true, defaultValue: "chamada" },
     { name: "activity_date", label: "Data e hora", type: "datetime", required: true },
+    { name: "duration_minutes", label: "Duração (min)", type: "number" },
     emp(),
     { name: "lead_id", label: "Lead", type: "select", lookup: "leads" },
     { name: "client_id", label: "Cliente", type: "select", lookup: "clients" },
-    { name: "description", label: "Descrição", type: "textarea" },
+    { name: "outcome", label: "Resultado", type: "text", wide: true },
+    { name: "description", label: "Notas", type: "textarea" },
   ],
   columns: [
     { key: "subject", label: "Assunto", className: "font-medium" },
     { key: "type", label: "Tipo", render: (r) => <StatusBadge tone="info" text={label(r.type)} /> },
     { key: "activity_date", label: "Data", render: (r) => fmtDate(r.activity_date, true) },
+    { key: "duration_minutes", label: "Duração", render: (r) => (r.duration_minutes ? `${r.duration_minutes} min` : "—") },
     { key: "employee_id", label: "Responsável", render: (r, l) => l.employees[r.employee_id] ?? "—" },
     { key: "client_id", label: "Cliente", render: (r, l) => l.clients[r.client_id] ?? "—" },
   ],
@@ -200,6 +209,9 @@ export const campaignsConfig: EntityConfig = {
     { name: "start_date", label: "Início", type: "date" },
     { name: "end_date", label: "Fim", type: "date" },
     { name: "budget", label: "Orçamento (Kz)", type: "number" },
+    { name: "cost", label: "Custo real (Kz)", type: "number" },
+    { name: "audience", label: "Público-alvo", type: "text", wide: true },
+    { name: "content", label: "Conteúdo / mensagem", type: "textarea" },
     { name: "description", label: "Descrição", type: "textarea" },
   ],
   columns: [
@@ -265,6 +277,9 @@ export const contractsConfig: EntityConfig = {
 
 export const targetFields: FieldDef[] = [
   { name: "employee_id", label: "Colaborador (vazio = meta de equipa)", type: "select", lookup: "employees", wide: true },
+  { name: "department_id", label: "Equipa / departamento", type: "select", lookup: "departments" },
+  { name: "province", label: "Província", type: "select", options: list(PROVINCES) },
+  { name: "service", label: "Serviço", type: "select", options: list(SERVICES) },
   { name: "metric", label: "Indicador", type: "select", options: opts("leads", "visitas", "reunioes", "propostas", "contratos", "receita"), required: true },
   { name: "period_type", label: "Periodicidade", type: "select", options: opts("mensal", "trimestral", "anual"), required: true, defaultValue: "mensal" },
   { name: "period_start", label: "Início do período", type: "date", required: true },
