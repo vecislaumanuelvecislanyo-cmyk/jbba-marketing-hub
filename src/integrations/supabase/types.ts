@@ -21,10 +21,12 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          duration_minutes: number | null
           employee_id: string | null
           id: string
           is_demo: boolean
           lead_id: string | null
+          outcome: string | null
           subject: string
           type: string
           updated_at: string
@@ -36,10 +38,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duration_minutes?: number | null
           employee_id?: string | null
           id?: string
           is_demo?: boolean
           lead_id?: string | null
+          outcome?: string | null
           subject: string
           type?: string
           updated_at?: string
@@ -51,10 +55,12 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duration_minutes?: number | null
           employee_id?: string | null
           id?: string
           is_demo?: boolean
           lead_id?: string | null
+          outcome?: string | null
           subject?: string
           type?: string
           updated_at?: string
@@ -191,8 +197,11 @@ export type Database = {
       }
       campaigns: {
         Row: {
+          audience: string | null
           budget: number | null
           channel: string | null
+          content: string | null
+          cost: number | null
           created_at: string
           created_by: string | null
           description: string | null
@@ -206,8 +215,11 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          audience?: string | null
           budget?: number | null
           channel?: string | null
+          content?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -221,8 +233,11 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          audience?: string | null
           budget?: number | null
           channel?: string | null
+          content?: string | null
+          cost?: number | null
           created_at?: string
           created_by?: string | null
           description?: string | null
@@ -242,6 +257,7 @@ export type Database = {
           address: string | null
           assigned_to: string | null
           city: string | null
+          contact_name: string | null
           created_at: string
           created_by: string | null
           email: string | null
@@ -251,7 +267,10 @@ export type Database = {
           nif: string | null
           notes: string | null
           phone: string | null
+          province: string | null
           sector: string | null
+          service: string | null
+          source: string | null
           status: string
           updated_at: string
           updated_by: string | null
@@ -260,6 +279,7 @@ export type Database = {
           address?: string | null
           assigned_to?: string | null
           city?: string | null
+          contact_name?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -269,7 +289,10 @@ export type Database = {
           nif?: string | null
           notes?: string | null
           phone?: string | null
+          province?: string | null
           sector?: string | null
+          service?: string | null
+          source?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -278,6 +301,7 @@ export type Database = {
           address?: string | null
           assigned_to?: string | null
           city?: string | null
+          contact_name?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
@@ -287,7 +311,10 @@ export type Database = {
           nif?: string | null
           notes?: string | null
           phone?: string | null
+          province?: string | null
           sector?: string | null
+          service?: string | null
+          source?: string | null
           status?: string
           updated_at?: string
           updated_by?: string | null
@@ -511,6 +538,7 @@ export type Database = {
         Row: {
           client_id: string | null
           completed_at: string | null
+          contract_id: string | null
           created_at: string
           created_by: string | null
           due_date: string
@@ -519,6 +547,9 @@ export type Database = {
           is_demo: boolean
           lead_id: string | null
           notes: string | null
+          priority: string
+          proposal_id: string | null
+          reminder_at: string | null
           status: string
           type: string
           updated_at: string
@@ -527,6 +558,7 @@ export type Database = {
         Insert: {
           client_id?: string | null
           completed_at?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           due_date: string
@@ -535,6 +567,9 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           notes?: string | null
+          priority?: string
+          proposal_id?: string | null
+          reminder_at?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -543,6 +578,7 @@ export type Database = {
         Update: {
           client_id?: string | null
           completed_at?: string | null
+          contract_id?: string | null
           created_at?: string
           created_by?: string | null
           due_date?: string
@@ -551,6 +587,9 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           notes?: string | null
+          priority?: string
+          proposal_id?: string | null
+          reminder_at?: string | null
           status?: string
           type?: string
           updated_at?: string
@@ -565,6 +604,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "followups_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "followups_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
@@ -576,6 +622,13 @@ export type Database = {
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "followups_proposal_id_fkey"
+            columns: ["proposal_id"]
+            isOneToOne: false
+            referencedRelation: "proposals"
             referencedColumns: ["id"]
           },
         ]
@@ -618,6 +671,8 @@ export type Database = {
           lost_reason: string | null
           notes: string | null
           phone: string | null
+          province: string | null
+          service: string | null
           source: string | null
           stage: string
           title: string
@@ -640,6 +695,8 @@ export type Database = {
           lost_reason?: string | null
           notes?: string | null
           phone?: string | null
+          province?: string | null
+          service?: string | null
           source?: string | null
           stage?: string
           title: string
@@ -662,6 +719,8 @@ export type Database = {
           lost_reason?: string | null
           notes?: string | null
           phone?: string | null
+          province?: string | null
+          service?: string | null
           source?: string | null
           stage?: string
           title?: string
@@ -896,6 +955,35 @@ export type Database = {
         }
         Relationships: []
       }
+      role_permissions: {
+        Row: {
+          created_at: string
+          id: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          permission: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          permission?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "role_permissions_role_fkey"
+            columns: ["role"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       roles: {
         Row: {
           code: Database["public"]["Enums"]["app_role"]
@@ -921,6 +1009,7 @@ export type Database = {
         Row: {
           created_at: string
           created_by: string | null
+          department_id: string | null
           employee_id: string | null
           id: string
           is_demo: boolean
@@ -928,6 +1017,8 @@ export type Database = {
           period_end: string
           period_start: string
           period_type: string
+          province: string | null
+          service: string | null
           target_value: number
           updated_at: string
           updated_by: string | null
@@ -935,6 +1026,7 @@ export type Database = {
         Insert: {
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           employee_id?: string | null
           id?: string
           is_demo?: boolean
@@ -942,6 +1034,8 @@ export type Database = {
           period_end: string
           period_start: string
           period_type?: string
+          province?: string | null
+          service?: string | null
           target_value: number
           updated_at?: string
           updated_by?: string | null
@@ -949,6 +1043,7 @@ export type Database = {
         Update: {
           created_at?: string
           created_by?: string | null
+          department_id?: string | null
           employee_id?: string | null
           id?: string
           is_demo?: boolean
@@ -956,11 +1051,20 @@ export type Database = {
           period_end?: string
           period_start?: string
           period_type?: string
+          province?: string | null
+          service?: string | null
           target_value?: number
           updated_at?: string
           updated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "targets_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "targets_employee_id_fkey"
             columns: ["employee_id"]
@@ -1001,6 +1105,8 @@ export type Database = {
           is_demo: boolean
           lead_id: string | null
           location: string | null
+          next_steps: string | null
+          notes: string | null
           objective: string | null
           outcome: string | null
           scheduled_at: string
@@ -1017,6 +1123,8 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           location?: string | null
+          next_steps?: string | null
+          notes?: string | null
           objective?: string | null
           outcome?: string | null
           scheduled_at: string
@@ -1033,6 +1141,8 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           location?: string | null
+          next_steps?: string | null
+          notes?: string | null
           objective?: string | null
           outcome?: string | null
           scheduled_at?: string
@@ -1071,6 +1181,10 @@ export type Database = {
     Functions: {
       can_read_all: { Args: { _user_id: string }; Returns: boolean }
       current_employee_id: { Args: never; Returns: string }
+      has_permission: {
+        Args: { _permission: string; _user_id: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1080,6 +1194,10 @@ export type Database = {
       }
       is_manager: { Args: { _user_id: string }; Returns: boolean }
       is_promotor: { Args: { _user_id: string }; Returns: boolean }
+      log_event: {
+        Args: { _action: string; _data: Json; _record: string; _table: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role:
