@@ -3,6 +3,8 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { fetchMe } from "@/lib/auth";
+import { type AppRole } from "@/lib/rbac";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,10 +35,17 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loginAs, setLoginAs] = useState<"super_admin" | "tecnico" | "ceo">("tecnico");
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => data.session && nav({ to: "/dashboard" }));
   }, [nav]);
+
+  const roleByLogin: Record<typeof loginAs, AppRole> = {
+    super_admin: "super_admin",
+    tecnico: "promotor",
+    ceo: "diretor_geral",
+  };
 
   async function go(mode: "in" | "up") {
     const p = schema.safeParse({ email, password, full_name: name || undefined });
@@ -46,6 +55,12 @@ function AuthPage() {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
       if (error) return toast.error("Credenciais inválidas ou email por confirmar.");
+      const me = await fetchMe();
+      if (!me || !me.roles.includes(roleByLogin[loginAs])) {
+        await supabase.auth.signOut();
+        setBusy(false);
+        return toast.error("A conta autenticada não possui o perfil selecionado.");
+      }
       nav({ to: "/dashboard" });
     } else {
       const { error } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo: window.location.origin, data: { full_name: name } } });
@@ -67,8 +82,16 @@ function AuthPage() {
       </div>
       <div className="flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <h2 className="mb-6 text-2xl font-semibold">Bem-vindo</h2>
+          <h2 className="mb-2 text-2xl font-semibold">Bem-vindo</h2>
           <Tabs defaultValue="in">
+            <div className="mb-4 space-y-2">
+              <Label>Iniciar sessão com:</Label>
+              <div className="grid grid-cols-3 gap-2">
+                {([["super_admin", "Super ADM"], ["tecnico", "Técnico"], ["ceo", "CEO"]] as const).map(([value, label]) => (
+                  <Button key={value} type="button" variant={loginAs === value ? "default" : "outline"} className="h-9 text-xs" onClick={() => setLoginAs(value)} disabled={busy}>{label}</Button>
+                ))}
+              </div>
+            </div>
             <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="in">Entrar</TabsTrigger><TabsTrigger value="up">Criar conta</TabsTrigger></TabsList>
             {(["in", "up"] as const).map((m) => (
               <TabsContent key={m} value={m}>
@@ -81,7 +104,7 @@ function AuthPage() {
               </TabsContent>
             ))}
           </Tabs>
-          <p className="mt-6 text-xs text-muted-foreground">O primeiro utilizador registado torna-se Administrador. Os seguintes ficam como Visualizador até o administrador atribuir o perfil.</p>
+          <p className="mt-6 text-xs text-muted-foreground">A opção escolhida é validada contra o perfil real da conta após a autenticação. O perfil não é atribuído apenas pela seleção.</p>
         </div>
       </div>
     </div>
