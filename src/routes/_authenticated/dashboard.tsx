@@ -75,7 +75,7 @@ function Dashboard() {
     return {
       id: e.value, name: e.label,
       leads: mine(d.leads, "assigned_to").filter((l) => within(l.created_at, range)).length,
-      visits: mine(d.visits, "employee_id").filter((v) => v.status === "realizada" && within(v.scheduled_at, range)).length,
+      visits: mine(d.visits, "employee_id").filter((v) => v.status === "aprovado" && within(v.scheduled_at, range)).length,
       activities: mine(d.activities, "employee_id").filter((a) => within(a.activity_date, range)).length,
       revenue: rev,
     };
