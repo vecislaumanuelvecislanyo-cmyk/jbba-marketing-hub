@@ -17,10 +17,10 @@ function MetasPage() {
   const d = useDatasets();
   return (
     <EntityPage config={{
-      table: "targets", title: "Metas", singular: "meta", write: "managers",
+      table: "targets", title: "Metas", singular: "meta", write: "managers", createLabel: "Adicionar meta",
       description: "O realizado é calculado automaticamente a partir dos registos do período.",
       searchKeys: ["metric"], fields: targetFields, validate: validateTarget,
-      filters: [{ key: "metric", label: "Indicador", options: opts("leads", "visitas", "reunioes", "propostas", "contratos", "receita") }, { key: "period_type", label: "Periodicidade", options: opts("mensal", "trimestral", "anual") }],
+      filters: [{ key: "status", label: "Estado", options: opts("em_analise", "processando", "pendente", "rejeitado", "aprovado") }, { key: "metric", label: "Indicador", options: opts("leads", "visitas", "reunioes", "propostas", "contratos", "receita") }, { key: "period_type", label: "Periodicidade", options: opts("mensal", "trimestral", "anual") }],
       columns: [
         { key: "employee_id", label: "Colaborador", className: "font-medium", render: (r, l) => r.employee_id ? l.employees[r.employee_id] ?? "—" : "Equipa" },
         { key: "metric", label: "Indicador", render: (r) => label(r.metric) },
