@@ -77,22 +77,28 @@ export const createManagedUser = createServerFn({ method: "POST" })
 
     const userId = created.user.id;
 
-    const { error: roleDeleteError } = await service.from("user_roles").delete().eq("user_id", userId);
-    if (roleDeleteError) throw new Error(roleDeleteError.message);
+    try {
+      const { error: roleDeleteError } = await service.from("user_roles").delete().eq("user_id", userId);
+      if (roleDeleteError) throw new Error(roleDeleteError.message);
 
-    const { error: roleInsertError } = await service.from("user_roles").insert({ user_id: userId, role: data.role });
-    if (roleInsertError) throw new Error(roleInsertError.message);
+      const { error: roleInsertError } = await service.from("user_roles").insert({ user_id: userId, role: data.role });
+      if (roleInsertError) throw new Error(roleInsertError.message);
 
-    const { error: profileError } = await service.from("profiles").update({
-      full_name: data.fullName,
-      email: data.email,
-      employee_id: data.employeeId ?? null,
-    }).eq("id", userId);
-    if (profileError) throw new Error(profileError.message);
+      const { error: profileError } = await service.from("profiles").upsert({
+        id: userId,
+        full_name: data.fullName,
+        email: data.email,
+        employee_id: data.employeeId ?? null,
+      });
+      if (profileError) throw new Error(profileError.message);
 
-    if (data.employeeId) {
-      const { error: employeeUpdateError } = await service.from("employees").update({ user_id: userId }).eq("id", data.employeeId);
-      if (employeeUpdateError) throw new Error(employeeUpdateError.message);
+      if (data.employeeId) {
+        const { error: employeeUpdateError } = await service.from("employees").update({ user_id: userId }).eq("id", data.employeeId);
+        if (employeeUpdateError) throw new Error(employeeUpdateError.message);
+      }
+    } catch (error) {
+      await service.auth.admin.deleteUser(userId);
+      throw error;
     }
 
     return { userId };
