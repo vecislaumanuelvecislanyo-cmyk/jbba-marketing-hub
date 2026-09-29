@@ -285,6 +285,7 @@ export const targetFields: FieldDef[] = [
   { name: "province", label: "Província", type: "select", options: list(PROVINCES) },
   { name: "service", label: "Serviço", type: "select", options: list(SERVICES) },
   { name: "metric", label: "Indicador", type: "select", options: opts("leads", "visitas", "reunioes", "propostas", "contratos", "receita"), required: true },
+  { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
   { name: "period_type", label: "Periodicidade", type: "select", options: opts("mensal", "trimestral", "anual"), required: true, defaultValue: "mensal" },
   { name: "period_start", label: "Início do período", type: "date", required: true },
   { name: "period_end", label: "Fim do período", type: "date", required: true },
