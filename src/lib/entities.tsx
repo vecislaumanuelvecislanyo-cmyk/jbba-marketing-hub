@@ -33,19 +33,31 @@ export const employeesConfig: EntityConfig = {
   ],
 };
 
+const provinceField: FieldDef = { name: "province", label: "Província", type: "select", options: list(PROVINCES) };
+const serviceField = (lbl = "Serviço"): FieldDef => ({ name: "service", label: lbl, type: "select", options: list(SERVICES) });
+const SOURCES = list(["Website", "Referência", "Campanha", "Evento", "Chamada", "Redes sociais", "Visita de campo", "Outro"]);
+
 export const clientsConfig: EntityConfig = {
   table: "clients", title: "Clientes", singular: "cliente", order: "name",
   description: "Carteira de clientes com visão 360°.",
-  searchKeys: ["name", "nif", "city", "sector", "email"],
-  filters: [{ key: "status", label: "Estado", options: opts("prospeto", "ativo", "inativo") }],
+  searchKeys: ["name", "nif", "city", "sector", "email", "contact_name"],
+  filters: [
+    { key: "status", label: "Estado", options: opts("prospeto", "ativo", "inativo") },
+    { key: "province", label: "Província", options: list(PROVINCES) },
+    { key: "service", label: "Serviço", options: list(SERVICES) },
+  ],
   fields: [
     { name: "name", label: "Nome / Razão social", type: "text", required: true, wide: true },
     { name: "nif", label: "NIF", type: "text" },
+    { name: "contact_name", label: "Pessoa de contacto", type: "text" },
     { name: "sector", label: "Setor", type: "text" },
     { name: "email", label: "Email", type: "email" },
     { name: "phone", label: "Telefone", type: "text" },
     { name: "address", label: "Morada", type: "text" },
-    { name: "city", label: "Cidade", type: "text" },
+    { name: "city", label: "Cidade / Município", type: "text" },
+    provinceField,
+    serviceField("Serviços contratados/interesse"),
+    { name: "source", label: "Origem", type: "select", options: SOURCES },
     { name: "status", label: "Estado", type: "select", options: opts("prospeto", "ativo", "inativo"), required: true, defaultValue: "prospeto" },
     emp("assigned_to", "Gestor de conta"),
     { name: "notes", label: "Notas", type: "textarea" },
@@ -53,7 +65,8 @@ export const clientsConfig: EntityConfig = {
   columns: [
     { key: "name", label: "Cliente", className: "font-medium", render: (r) => <Link to="/clientes/$id" params={{ id: r.id }} className="hover:text-primary hover:underline">{r.name}</Link> },
     { key: "sector", label: "Setor", render: (r) => r.sector ?? "—" },
-    { key: "city", label: "Cidade", render: (r) => r.city ?? "—" },
+    { key: "province", label: "Província", render: (r) => r.province ?? "—" },
+    { key: "service", label: "Serviço", render: (r) => r.service ?? "—" },
     { key: "assigned_to", label: "Gestor", render: (r, l) => l.employees[r.assigned_to] ?? "—" },
     { key: "status", label: "Estado", render: (r) => <StatusBadge value={r.status} /> },
   ],
@@ -65,9 +78,11 @@ export const leadFields: FieldDef[] = [
   { name: "company", label: "Empresa", type: "text" },
   { name: "email", label: "Email", type: "email" },
   { name: "phone", label: "Telefone", type: "text" },
-  { name: "source", label: "Origem", type: "select", options: ["Website", "Referência", "Campanha", "Evento", "Chamada", "Redes sociais", "Outro"].map((v) => ({ value: v, label: v })) },
+  { name: "source", label: "Origem", type: "select", options: SOURCES },
+  serviceField("Serviço / interesse"),
+  provinceField,
   { name: "stage", label: "Fase", type: "select", options: STAGES.map((s) => ({ value: s.code, label: s.name })), required: true, defaultValue: "lead" },
-  { name: "estimated_value", label: "Valor estimado (Kz)", type: "number" },
+  { name: "estimated_value", label: "Valor potencial (Kz)", type: "number" },
   { name: "client_id", label: "Cliente", type: "select", lookup: "clients" },
   { name: "campaign_id", label: "Campanha", type: "select", lookup: "campaigns" },
   emp("assigned_to", "Responsável"),
@@ -77,8 +92,13 @@ export const leadFields: FieldDef[] = [
 
 export const leadsConfig: EntityConfig = {
   table: "leads", title: "Leads", singular: "lead",
-  searchKeys: ["title", "company", "contact_name", "email"],
-  filters: [{ key: "stage", label: "Fase", options: STAGES.map((s) => ({ value: s.code, label: s.name })) }],
+  searchKeys: ["title", "company", "contact_name", "email", "phone"],
+  filters: [
+    { key: "stage", label: "Fase", options: STAGES.map((s) => ({ value: s.code, label: s.name })) },
+    { key: "province", label: "Província", options: list(PROVINCES) },
+    { key: "service", label: "Serviço", options: list(SERVICES) },
+    { key: "source", label: "Origem", options: SOURCES },
+  ],
   fields: leadFields,
   validate: (v) => (v.stage === "perdido" && !v.lost_reason ? "Indique o motivo de perda." : null),
   columns: [
@@ -86,6 +106,8 @@ export const leadsConfig: EntityConfig = {
     { key: "company", label: "Empresa", render: (r) => r.company ?? "—" },
     { key: "stage", label: "Fase", render: (r) => <StatusBadge value={r.stage} text={stageName(r.stage)} /> },
     { key: "estimated_value", label: "Valor", render: (r) => fmtMoney(r.estimated_value) },
+    { key: "province", label: "Província", render: (r) => r.province ?? "—" },
+    { key: "service", label: "Serviço", render: (r) => r.service ?? "—" },
     { key: "assigned_to", label: "Responsável", render: (r, l) => l.employees[r.assigned_to] ?? "—" },
     { key: "created_at", label: "Criada", render: (r) => fmtDate(r.created_at) },
   ],
