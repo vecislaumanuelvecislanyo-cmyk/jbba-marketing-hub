@@ -87,7 +87,7 @@ export const leadFields: FieldDef[] = [
   { name: "campaign_id", label: "Campanha", type: "select", lookup: "campaigns" },
   emp("assigned_to", "Responsável"),
   { name: "lost_reason", label: "Motivo de perda", type: "text" },
-  { name: "notes", label: "Notas", type: "textarea" },
+  { name: "notes", label: "Notas da interação", type: "textarea", wide: true },
 ];
 
 export const leadsConfig: EntityConfig = {

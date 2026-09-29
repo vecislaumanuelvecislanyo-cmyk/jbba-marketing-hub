@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Kanban, List, Plus } from "lucide-react";
+import { Kanban, List, Plus, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -15,6 +15,7 @@ import { pageHead } from "@/lib/head";
 import { useMe } from "@/lib/auth";
 import { canWriteOperational } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
+import { suggestFollowup } from "@/lib/ai-followup";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: pageHead("Leads", "Pipeline comercial em Kanban."),
@@ -45,6 +46,9 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
   const [dragId, setDragId] = useState<string | null>(null);
   const [over, setOver] = useState<string | null>(null);
   const [lost, setLost] = useState<{ id: string; reason: string } | null>(null);
+  const [aiLead, setAiLead] = useState<Row | null>(null);
+  const [aiResult, setAiResult] = useState<{ summary: string; action: string; type: string; priority: string; dueInDays: number } | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   async function move(id: string, stage: string, lost_reason?: string) {
     const { error } = await db("leads").update({ stage, ...(lost_reason ? { lost_reason } : {}) }).eq("id", id);
@@ -56,6 +60,29 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
     if (!lead || lead.stage === stage) return;
     if (stage === "perdido") setLost({ id: lead.id, reason: "" });
     else move(lead.id, stage);
+  }
+
+  async function generateFollowup(lead: Row) {
+    setAiLead(lead);
+    setAiResult(null);
+    setAiLoading(true);
+    try {
+      const result = await suggestFollowup({
+        data: {
+          leadId: String(lead.id),
+          stage: String(lead.stage ?? ""),
+          notes: String(lead.notes ?? ""),
+          title: String(lead.title ?? ""),
+          company: String(lead.company ?? ""),
+          contactName: String(lead.contact_name ?? ""),
+        },
+      });
+      setAiResult(result);
+    } catch (error) {
+      toast.error(errMsg(error));
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   const s = search.toLowerCase();
@@ -88,7 +115,17 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
                       className="rounded-lg border bg-card p-3 text-left shadow-card transition hover:border-primary/40">
                       <div className="flex items-start justify-between gap-1">
                         <span className="text-sm font-medium leading-snug">{l.title}</span>
-                        {l.is_demo && <DemoBadge />}
+                        <span className="flex items-center gap-1">
+                          {canWrite && <span
+                            role="button"
+                            tabIndex={0}
+                            title="Sugerir próximo follow-up com IA"
+                            onClick={(e) => { e.stopPropagation(); void generateFollowup(l); }}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); e.stopPropagation(); void generateFollowup(l); } }}
+                            className="inline-flex rounded p-1 text-muted-foreground hover:bg-muted hover:text-primary"
+                          ><Sparkles className="h-3.5 w-3.5" /></span>}
+                          {l.is_demo && <DemoBadge />}
+                        </span>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{l.company ?? l.contact_name ?? "—"}</div>
                       <div className="mt-2 flex items-center justify-between text-xs">
@@ -105,6 +142,30 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
         </div>
       )}
       <EntityForm open={open} onOpenChange={setOpen} table="leads" title="lead" fields={leadFields} row={editing} validate={leadsConfig.validate} />
+      <Dialog open={!!aiLead} onOpenChange={(o) => !o && setAiLead(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Próximo follow-up sugerido por IA</DialogTitle>
+          </DialogHeader>
+          {aiLoading ? <LoadingState text="A analisar a etapa e as notas da interação…" /> : aiResult ? (
+            <div className="space-y-4 text-sm">
+              <div className="rounded-lg border bg-muted/40 p-3">
+                <div className="font-medium">{aiResult.summary}</div>
+                <p className="mt-1 text-muted-foreground">{aiResult.action}</p>
+              </div>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                <div className="rounded border p-2"><div className="text-muted-foreground">Tipo</div><div className="font-medium">{aiResult.type}</div></div>
+                <div className="rounded border p-2"><div className="text-muted-foreground">Prioridade</div><div className="font-medium">{aiResult.priority}</div></div>
+                <div className="rounded border p-2"><div className="text-muted-foreground">Prazo</div><div className="font-medium">{aiResult.dueInDays} dia(s)</div></div>
+              </div>
+              <p className="text-xs text-muted-foreground">Sugestão assistiva: nada é criado ou alterado automaticamente.</p>
+            </div>
+          ) : <p className="text-sm text-muted-foreground">Não foi possível gerar uma sugestão.</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAiLead(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={!!lost} onOpenChange={(o) => !o && setLost(null)}>
         <DialogContent>
           <DialogHeader><DialogTitle>Motivo de perda</DialogTitle></DialogHeader>

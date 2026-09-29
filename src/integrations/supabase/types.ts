@@ -1201,6 +1201,7 @@ export type Database = {
     }
     Enums: {
       app_role:
+        | "super_admin"
         | "admin"
         | "diretor_geral"
         | "gestor_marketing"

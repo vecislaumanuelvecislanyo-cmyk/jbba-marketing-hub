@@ -1,6 +1,7 @@
-export type AppRole = "admin" | "diretor_geral" | "gestor_marketing" | "promotor" | "visualizador";
+export type AppRole = "super_admin" | "admin" | "diretor_geral" | "gestor_marketing" | "promotor" | "visualizador";
 
 export const ROLE_LABELS: Record<AppRole, string> = {
+  super_admin: "Super Administrador",
   admin: "Administrador",
   diretor_geral: "Diretor Geral",
   gestor_marketing: "Gestor de Marketing",
@@ -8,17 +9,18 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   visualizador: "Visualizador",
 };
 
-export const ROLE_ORDER: AppRole[] = ["admin", "diretor_geral", "gestor_marketing", "promotor", "visualizador"];
+export const ROLE_ORDER: AppRole[] = ["super_admin", "admin", "diretor_geral", "gestor_marketing", "promotor", "visualizador"];
 
 export const primaryRole = (roles: AppRole[]): AppRole =>
   ROLE_ORDER.find((r) => roles.includes(r)) ?? "visualizador";
 
-export const isAdmin = (r: AppRole[]) => r.includes("admin");
+export const isSuperAdmin = (r: AppRole[]) => r.includes("super_admin");
+export const isAdmin = (r: AppRole[]) => isSuperAdmin(r) || r.includes("admin");
 export const isManager = (r: AppRole[]) =>
-  r.some((x) => x === "admin" || x === "diretor_geral" || x === "gestor_marketing");
+  r.some((x) => x === "super_admin" || x === "admin" || x === "diretor_geral" || x === "gestor_marketing");
 export const isPromotor = (r: AppRole[]) => r.includes("promotor");
 export const canWriteOperational = (r: AppRole[]) => isManager(r) || isPromotor(r);
-export const canAudit = (r: AppRole[]) => r.includes("admin") || r.includes("diretor_geral");
+export const canAudit = (r: AppRole[]) => isAdmin(r) || r.includes("diretor_geral");
 
 export type Access = "all" | "managers" | "audit" | "admin";
 export const hasAccess = (roles: AppRole[], access: Access) => {
@@ -29,3 +31,10 @@ export const hasAccess = (roles: AppRole[], access: Access) => {
     case "admin": return isAdmin(roles);
   }
 };
+
+export type MutationLevel = "operational" | "managers" | "admin";
+export const canCreate = (r: AppRole[], level: MutationLevel) =>
+  level === "admin" ? isAdmin(r) : level === "managers" ? isManager(r) : canWriteOperational(r);
+export const canEdit = canCreate;
+export const canDelete = (r: AppRole[], level: Exclude<MutationLevel, "operational">) =>
+  level === "admin" ? isAdmin(r) : isManager(r);

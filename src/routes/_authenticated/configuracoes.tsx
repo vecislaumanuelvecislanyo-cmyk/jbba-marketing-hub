@@ -26,7 +26,7 @@ function Settings() {
   const inv = useInvalidate();
 
   async function setRole(userId: string, role: AppRole) {
-    if (userId === me.userId && role !== "admin") return toast.error("Não pode retirar o seu próprio perfil de Administrador.");
+    if (userId === me.userId && role !== me.role) return toast.error("Não pode alterar o seu próprio perfil.");
     const del = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (del.error) return toast.error(errMsg(del.error));
     const ins = await supabase.from("user_roles").insert({ user_id: userId, role });
@@ -63,7 +63,7 @@ function Settings() {
                   <TableCell>
                     <Select value={r} onValueChange={(v) => setRole(p.id, v as AppRole)}>
                       <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-                      <SelectContent>{ROLE_ORDER.map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
+                      <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin")).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>

@@ -11,6 +11,22 @@ export type Me = {
   employeeId: string | null;
 };
 
+export function buildMe(
+  user: { id: string; email?: string | null },
+  roles: AppRole[],
+  profile?: { full_name?: string | null; employee_id?: string | null } | null,
+  employee?: { id?: string | null } | null,
+): Me {
+  return {
+    userId: user.id,
+    email: user.email ?? "",
+    fullName: profile?.full_name ?? user.email ?? "",
+    roles,
+    role: primaryRole(roles),
+    employeeId: employee?.id ?? profile?.employee_id ?? null,
+  };
+}
+
 export async function fetchMe(): Promise<Me | null> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
@@ -20,14 +36,7 @@ export async function fetchMe(): Promise<Me | null> {
     supabase.from("employees").select("id").eq("user_id", user.id).maybeSingle(),
   ]);
   const r = (roles ?? []).map((x) => x.role as AppRole);
-  return {
-    userId: user.id,
-    email: user.email ?? "",
-    fullName: profile?.full_name ?? user.email ?? "",
-    roles: r,
-    role: primaryRole(r),
-    employeeId: emp?.id ?? profile?.employee_id ?? null,
-  };
+  return buildMe(user, r, profile, emp);
 }
 
 const Ctx = createContext<Me | null>(null);
