@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowDownUp, Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDownUp, BrainCircuit, Download, FileUp, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { downloadCsv, logEvent } from "@/lib/export";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +10,7 @@ import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DemoBadge, EmptyState, ErrorState, LoadingState, PageHeader } from "./common";
 import { EntityForm, type FieldDef } from "./entity-form";
 import { db, errMsg, useInvalidate, useLookup, useTable, type LookupKey, type Row } from "@/lib/data";
@@ -36,6 +37,9 @@ export type EntityConfig = {
   invalidate?: string[];
   headerExtra?: ReactNode;
   rowActions?: (row: Row) => ReactNode;
+  dateField?: string;
+  importable?: boolean;
+  analyzable?: boolean;
 };
 
 export function useAllLookups(): Lookups {
@@ -55,14 +59,28 @@ export function EntityPage({ config }: { config: EntityConfig }) {
   const [open, setOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Row | null>(null);
   const [sort, setSort] = useState<{ key: string; asc: boolean } | null>(null);
+  const [datePreset, setDatePreset] = useState<"all" | "day" | "week" | "month" | "year">("all");
+  const [analysisOpen, setAnalysisOpen] = useState(false);
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
   const canDelete = config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
 
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
+    const now = new Date();
+    const start = new Date(now);
+    if (datePreset === "day") start.setHours(0, 0, 0, 0);
+    if (datePreset === "week") { start.setHours(0, 0, 0, 0); start.setDate(start.getDate() - ((start.getDay() + 6) % 7)); }
+    if (datePreset === "month") { start.setHours(0, 0, 0, 0); start.setDate(1); }
+    if (datePreset === "year") { start.setHours(0, 0, 0, 0); start.setMonth(0, 1); }
+    const end = new Date(now);
+    if (datePreset === "day") end.setHours(23, 59, 59, 999);
+    if (datePreset === "week") { end.setTime(start.getTime()); end.setDate(end.getDate() + 6); end.setHours(23, 59, 59, 999); }
+    if (datePreset === "month") { end.setMonth(end.getMonth() + 1, 0); end.setHours(23, 59, 59, 999); }
+    if (datePreset === "year") { end.setFullYear(end.getFullYear() + 1, 0, 0); end.setHours(23, 59, 59, 999); }
     return (q.data ?? []).filter((r) => {
       for (const [k, v] of Object.entries(filters)) if (v && v !== "all" && String(r[k]) !== v) return false;
+      if (config.dateField && datePreset !== "all") { const d = new Date(String(r[config.dateField] ?? "")); if (Number.isNaN(d.getTime()) || d < start || d > end) return false; }
       if (!s) return true;
       return config.searchKeys.some((k) => String(r[k] ?? "").toLowerCase().includes(s));
     }).sort((a, b) => {
@@ -71,7 +89,36 @@ export function EntityPage({ config }: { config: EntityConfig }) {
       const c = typeof x === "number" || typeof y === "number" ? Number(x) - Number(y) : String(x).localeCompare(String(y), "pt");
       return sort.asc ? c : -c;
     });
-  }, [q.data, search, filters, config.searchKeys, sort]);
+  }, [q.data, search, filters, config.searchKeys, sort, config.dateField, datePreset]);
+
+
+  async function importCsv(file: File) {
+    const text = await file.text();
+    const lines = text.split(/\r?\n/).filter(Boolean);
+    if (lines.length < 2) return toast.error("O ficheiro CSV não contém registos.");
+    const headers = lines[0].split(",").map((x) => x.trim().replace(/^"|"$/g, ""));
+    const aliases = new Map<string, string>();
+    for (const col of config.columns) { aliases.set(col.key.toLowerCase(), col.key); aliases.set(col.label.toLowerCase(), col.key); }
+    const payload = lines.slice(1).map((line) => {
+      const values = line.split(",").map((x) => x.trim().replace(/^"|"$/g, ""));
+      const row: Record<string, unknown> = {};
+      headers.forEach((h, i) => { const key = aliases.get(h.toLowerCase()); if (key && values[i] !== "") row[key] = values[i]; });
+      return row;
+    }).filter((row) => Object.keys(row).length > 0);
+    if (!payload.length) return toast.error("Nenhuma linha válida foi encontrada.");
+    const { error } = await db(config.table).insert(payload);
+    if (error) return toast.error(errMsg(error));
+    toast.success(payload.length + " registo(s) importado(s).");
+    inv(config.table, ...(config.invalidate ?? []));
+  }
+
+  function openImport() { document.getElementById("import-" + config.table)?.click(); }
+
+  const analysis = useMemo(() => {
+    const statusCounts = rows.reduce<Record<string, number>>((acc, row) => { const s = String(row.status ?? "sem estado"); acc[s] = (acc[s] ?? 0) + 1; return acc; }, {});
+    const value = rows.reduce((sum, row) => sum + Number(row.value ?? 0), 0);
+    return { count: rows.length, statusCounts, value };
+  }, [rows]);
 
   async function exportCsv() {
     const text = (n: ReactNode) => (typeof n === "string" || typeof n === "number" ? n : null);
@@ -100,7 +147,9 @@ export function EntityPage({ config }: { config: EntityConfig }) {
         description={config.description}
         actions={<>
           {config.headerExtra}
-          <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />CSV</Button>
+          {config.importable && canWrite && <><input id={"import-" + config.table} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCsv(file); e.currentTarget.value = ""; }} /><Button variant="outline" onClick={openImport}><FileUp />Importar</Button></>}
+          {config.analyzable && <Button variant="outline" onClick={() => setAnalysisOpen(true)}><BrainCircuit />Analisar</Button>}
+          <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />Exportar</Button>
           {canWrite && <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus />Novo</Button>}
         </>}
       />
@@ -109,6 +158,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input placeholder="Pesquisar…" value={search} onChange={(e) => setSearch(e.target.value)} className="pl-9 bg-card" />
         </div>
+        {config.dateField && <Select value={datePreset} onValueChange={(v) => setDatePreset(v as typeof datePreset)}><SelectTrigger className="bg-card sm:w-44"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os períodos</SelectItem><SelectItem value="day">Hoje</SelectItem><SelectItem value="week">Esta semana</SelectItem><SelectItem value="month">Este mês</SelectItem><SelectItem value="year">Este ano</SelectItem></SelectContent></Select>}
         {config.filters?.map((f) => (
           <Select key={f.key} value={filters[f.key] ?? "all"} onValueChange={(v) => setFilters((p) => ({ ...p, [f.key]: v }))}>
             <SelectTrigger className="bg-card sm:w-48"><SelectValue placeholder={f.label} /></SelectTrigger>
@@ -164,6 +214,9 @@ export function EntityPage({ config }: { config: EntityConfig }) {
         )}
       </div>
       <p className="mt-2 text-xs text-muted-foreground">{rows.length} registo(s)</p>
+
+      <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}><DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>Análise de {config.title}</DialogTitle><DialogDescription>Resumo operacional dos registos atualmente filtrados.</DialogDescription></DialogHeader><div className="grid gap-3 sm:grid-cols-3"><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Registos</div><div className="text-2xl font-semibold">{analysis.count}</div></div><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Estados</div><div className="mt-1 space-y-1 text-sm">{Object.entries(analysis.statusCounts).map(([s,n]) => <div key={s} className="flex justify-between gap-3"><span>{s}</span><b>{n}</b></div>)}</div></div><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Valor total</div><div className="text-xl font-semibold">{analysis.value.toLocaleString("pt-PT")} Kz</div></div></div></DialogContent></Dialog>
+
 
       <EntityForm open={open} onOpenChange={setOpen} table={config.table} title={config.singular} fields={config.fields} row={editing} validate={config.validate} invalidate={config.invalidate} />
 
