@@ -10,6 +10,12 @@ const inputSchema = z.object({
   employeeId: z.string().uuid().nullable().optional(),
 });
 
+
+
+const deleteInputSchema = z.object({
+  targetUserId: z.string().uuid(),
+});
+
 function env(name: string) {
   return process.env[name] ?? import.meta.env[name] ?? "";
 }
@@ -102,4 +108,46 @@ export const createManagedUser = createServerFn({ method: "POST" })
     }
 
     return { userId };
+  });
+
+
+export const deleteManagedUser = createServerFn({ method: "POST" })
+  .middleware([authMiddleware])
+  .validator(deleteInputSchema)
+  .handler(async ({ data, context }) => {
+    const url = env("SUPABASE_URL");
+    const serviceKey = env("SUPABASE_SERVICE_ROLE_KEY") || env("SUPABASE_SECRET_KEY");
+    if (!url || !serviceKey) throw new Error("A chave administrativa do Supabase não está configurada no servidor.");
+    if (data.targetUserId === context.userId) throw new Error("A sua própria conta não pode ser apagada aqui.");
+
+    const service = createClient(url, serviceKey, {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+
+    const { data: targetRoles, error: targetRoleError } = await service
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", data.targetUserId);
+
+    if (targetRoleError) throw new Error("Não foi possível validar o perfil da conta.");
+    if ((targetRoles ?? []).some((row) => String(row.role) === "super_admin") && !context.actorRoles.includes("super_admin")) {
+      throw new Error("Apenas o Super ADM pode apagar uma conta de Super ADM.");
+    }
+
+    const { error: employeeError } = await service
+      .from("employees")
+      .update({ user_id: null })
+      .eq("user_id", data.targetUserId);
+    if (employeeError) throw new Error(employeeError.message);
+
+    const { error: profileError } = await service.from("profiles").delete().eq("id", data.targetUserId);
+    if (profileError) throw new Error(profileError.message);
+
+    const { error: rolesError } = await service.from("user_roles").delete().eq("user_id", data.targetUserId);
+    if (rolesError) throw new Error(rolesError.message);
+
+    const { error: authError } = await service.auth.admin.deleteUser(data.targetUserId);
+    if (authError) throw new Error(authError.message);
+
+    return { userId: data.targetUserId };
   });
