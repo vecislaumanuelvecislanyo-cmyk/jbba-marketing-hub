@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { JbbaLogo } from "@/components/app/jbba-logo";
 import {
   Sidebar, SidebarContent, SidebarFooter, SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarHeader,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarProvider, SidebarTrigger,
@@ -73,7 +74,7 @@ function Layout() {
         <div className="flex min-h-screen w-full">
           <Sidebar collapsible="icon">
             <SidebarHeader className="px-4 py-4">
-              <div className="font-display text-lg font-semibold text-sidebar-accent-foreground group-data-[collapsible=icon]:hidden">JBBA <span className="text-sidebar-primary">Marketing</span></div>
+              <JbbaLogo className="h-12 w-full object-contain px-1 group-data-[collapsible=icon]:hidden" />
             </SidebarHeader>
             <SidebarContent>
               {groups.map((g) => {
