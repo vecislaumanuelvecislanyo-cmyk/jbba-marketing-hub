@@ -15,7 +15,7 @@ import { errMsg, useInvalidate, useLookup, useTable } from "@/lib/data";
 import { pageHead } from "@/lib/head";
 import { ROLE_LABELS, ROLE_ORDER, primaryRole, type AppRole } from "@/lib/rbac";
 import { useMe } from "@/lib/auth";
-import { createManagedUser } from "@/lib/admin-users";
+import { createManagedUser, deleteManagedUser } from "@/lib/admin-users";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: pageHead("Configurações", "Utilizadores, perfis e permissões."),
@@ -81,8 +81,11 @@ function Settings() {
   async function deleteUserAccount(userId: string) {
     if (!me.roles.includes("super_admin")) return toast.error("Apenas o Super ADM pode apagar contas.");
     if (userId === me.userId) return toast.error("A sua própria conta não pode ser apagada aqui.");
-    const { error } = await (supabase as any).rpc("delete_user_account", { target_user_id: userId });
-    if (error) return toast.error(errMsg(error));
+    try {
+      await deleteManagedUser({ data: { targetUserId: userId } });
+    } catch (error) {
+      return toast.error(errMsg(error));
+    }
     toast.success("Conta, perfil, funções e acessos apagados.");
     setToDeleteUser(null);
     inv("profiles", "user_roles", "employees", "me");
