@@ -5,14 +5,15 @@ import { StatusBadge } from "@/components/app/common";
 import { fmtDate, fmtMoney, label, list, opts, PROVINCES, SERVICES, STAGES, stageName } from "./format";
 
 const emp = (k = "employee_id", lbl = "Responsável"): FieldDef => ({ name: k, label: lbl, type: "select", lookup: "employees", owner: true });
+const WORKFLOW_STATES = opts("em_analise", "processando", "pendente", "rejeitado", "aprovado");
 const dateRangeCheck = (s: string, e: string) => (v: Record<string, string>) =>
   v[s] && v[e] && v[e] < v[s] ? "A data de fim não pode ser anterior à data de início." : null;
 
 export const employeesConfig: EntityConfig = {
   table: "employees", title: "Equipa", singular: "colaborador", order: "full_name",
-  description: "Colaboradores de Marketing e Comercial.", write: "managers", deleteBy: "admin",
+  description: "Membros da equipa de Marketing e Comercial. Pode adicionar, alterar estado e remover membros autorizados.", write: "managers", deleteBy: "admin",
   searchKeys: ["full_name", "email", "position"],
-  filters: [{ key: "status", label: "Estado", options: opts("ativo", "inativo") }],
+  filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
   fields: [
     { name: "full_name", label: "Nome completo", type: "text", required: true, wide: true },
     { name: "email", label: "Email", type: "email" },
@@ -20,7 +21,7 @@ export const employeesConfig: EntityConfig = {
     { name: "position", label: "Função", type: "text" },
     { name: "department_id", label: "Departamento", type: "select", lookup: "departments" },
     { name: "manager_id", label: "Superior hierárquico", type: "select", lookup: "employees" },
-    { name: "status", label: "Estado", type: "select", options: opts("ativo", "inativo"), required: true, defaultValue: "ativo" },
+    { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     { name: "hire_date", label: "Data de admissão", type: "date" },
   ],
   columns: [
@@ -41,8 +42,9 @@ export const clientsConfig: EntityConfig = {
   table: "clients", title: "Clientes", singular: "cliente", order: "name",
   description: "Carteira de clientes com visão 360°.",
   searchKeys: ["name", "nif", "city", "sector", "email", "contact_name"],
+  dateField: "created_at",
   filters: [
-    { key: "status", label: "Estado", options: opts("prospeto", "ativo", "inativo") },
+    { key: "status", label: "Estado", options: WORKFLOW_STATES },
     { key: "province", label: "Província", options: list(PROVINCES) },
     { key: "service", label: "Serviço", options: list(SERVICES) },
   ],
@@ -58,7 +60,7 @@ export const clientsConfig: EntityConfig = {
     provinceField,
     serviceField("Serviços contratados/interesse"),
     { name: "source", label: "Origem", type: "select", options: SOURCES },
-    { name: "status", label: "Estado", type: "select", options: opts("prospeto", "ativo", "inativo"), required: true, defaultValue: "prospeto" },
+    { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     emp("assigned_to", "Gestor de conta"),
     { name: "notes", label: "Notas", type: "textarea" },
   ],
@@ -117,10 +119,10 @@ export const visitsConfig: EntityConfig = {
   table: "visits", title: "Visitas", singular: "visita", order: "scheduled_at",
   description: "Agendamento e registo de visitas a clientes.",
   searchKeys: ["location", "objective", "outcome"],
-  filters: [{ key: "status", label: "Estado", options: opts("agendada", "realizada", "cancelada") }],
+  filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
   fields: [
     { name: "scheduled_at", label: "Data e hora", type: "datetime", required: true },
-    { name: "status", label: "Estado", type: "select", options: opts("agendada", "realizada", "cancelada"), required: true, defaultValue: "agendada" },
+    { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     { name: "client_id", label: "Cliente", type: "select", lookup: "clients" },
     { name: "lead_id", label: "Lead", type: "select", lookup: "leads" },
     emp(),
@@ -174,11 +176,13 @@ export const activitiesConfig: EntityConfig = {
   table: "activities", title: "Atividades", singular: "atividade", order: "activity_date",
   description: "Registo de chamadas, emails, reuniões e outras interações.",
   searchKeys: ["subject", "description"],
-  filters: [{ key: "type", label: "Tipo", options: opts("chamada", "email", "reuniao", "visita", "outro") }],
+  dateField: "activity_date",
+  filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }, { key: "type", label: "Tipo", options: opts("chamada", "email", "reuniao", "visita", "outro") }],
   fields: [
     { name: "subject", label: "Assunto", type: "text", required: true, wide: true },
     { name: "type", label: "Tipo", type: "select", options: opts("chamada", "email", "reuniao", "visita", "outro"), required: true, defaultValue: "chamada" },
     { name: "activity_date", label: "Data e hora", type: "datetime", required: true },
+    { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     { name: "duration_minutes", label: "Duração (min)", type: "number" },
     emp(),
     { name: "lead_id", label: "Lead", type: "select", lookup: "leads" },
@@ -198,14 +202,14 @@ export const activitiesConfig: EntityConfig = {
 
 export const campaignsConfig: EntityConfig = {
   table: "campaigns", title: "Campanhas", singular: "campanha", write: "managers",
-  description: "Campanhas de marketing e respetivas leads associadas.",
+  description: "Campanhas de marketing, execução e acompanhamento de desempenho.",
   searchKeys: ["name", "channel", "description"],
-  filters: [{ key: "status", label: "Estado", options: opts("planeada", "ativa", "concluida", "cancelada") }],
+  filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
   validate: dateRangeCheck("start_date", "end_date"),
   fields: [
     { name: "name", label: "Nome", type: "text", required: true, wide: true },
     { name: "channel", label: "Canal", type: "text" },
-    { name: "status", label: "Estado", type: "select", options: opts("planeada", "ativa", "concluida", "cancelada"), required: true, defaultValue: "planeada" },
+    { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     { name: "start_date", label: "Início", type: "date" },
     { name: "end_date", label: "Fim", type: "date" },
     { name: "budget", label: "Orçamento (Kz)", type: "number" },
@@ -224,7 +228,7 @@ export const campaignsConfig: EntityConfig = {
 };
 
 export const proposalsConfig: EntityConfig = {
-  table: "proposals", title: "Propostas", singular: "proposta",
+  table: "proposals", title: "Propostas", singular: "proposta", importable: true, analyzable: true,
   description: "Propostas comerciais enviadas a clientes e leads.",
   searchKeys: ["title"],
   filters: [{ key: "status", label: "Estado", options: opts("rascunho", "enviada", "aceite", "rejeitada") }],
@@ -249,7 +253,7 @@ export const proposalsConfig: EntityConfig = {
 };
 
 export const contractsConfig: EntityConfig = {
-  table: "contracts", title: "Contratos", singular: "contrato",
+  table: "contracts", title: "Contratos", singular: "contrato", importable: true, analyzable: true,
   description: "Contratos celebrados. A receita considera contratos com data de assinatura.",
   searchKeys: ["title"],
   filters: [{ key: "status", label: "Estado", options: opts("pendente", "assinado", "ativo", "terminado", "cancelado") }],
