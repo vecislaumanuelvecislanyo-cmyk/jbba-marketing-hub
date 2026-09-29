@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useState } from "react";
+import { ShieldCheck, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, RequireAccess } from "@/components/app/common";
 import { supabase } from "@/integrations/supabase/client";
@@ -18,6 +22,7 @@ const NONE = "__none__";
 
 function Settings() {
   const me = useMe();
+  const [toDeleteUser, setToDeleteUser] = useState<{ id: string; name: string } | null>(null);
   const profiles = useTable("profiles", { order: "created_at" });
   const roles = useTable("user_roles", { select: "user_id, role" });
   const perms = useTable("permissions", { order: "role", ascending: true });
@@ -34,6 +39,16 @@ function Settings() {
     if (ins.error) return toast.error(errMsg(ins.error));
     toast.success("Perfil atualizado"); inv("user_roles");
   }
+  async function deleteUserAccount(userId: string) {
+    if (!me.roles.includes("super_admin")) return toast.error("Apenas o Super ADM pode apagar contas.");
+    if (userId === me.userId) return toast.error("A sua própria conta não pode ser apagada aqui.");
+    const { error } = await (supabase as any).rpc("delete_user_account", { target_user_id: userId });
+    if (error) return toast.error(errMsg(error));
+    toast.success("Conta, perfil, funções e acessos apagados.");
+    setToDeleteUser(null);
+    inv("profiles", "user_roles", "employees", "me");
+  }
+
   async function linkEmployee(userId: string, empId: string) {
     const prev = (emps.data ?? []).find((e) => e.user_id === userId);
     if (prev) { const r = await supabase.from("employees").update({ user_id: null }).eq("id", prev.id); if (r.error) return toast.error(errMsg(r.error)); }
@@ -54,7 +69,7 @@ function Settings() {
       <Panel title="Utilizadores">
         {!profiles.data?.length ? <EmptyState /> : (
           <div className="overflow-x-auto"><Table>
-            <TableHeader><TableRow><TableHead>Utilizador</TableHead><TableHead>Perfil</TableHead><TableHead>Colaborador associado</TableHead></TableRow></TableHeader>
+            <TableHeader><TableRow><TableHead>Utilizador</TableHead><TableHead>Perfil</TableHead><TableHead>Colaborador associado</TableHead><TableHead className="text-right">Administração</TableHead></TableRow></TableHeader>
             <TableBody>{profiles.data.map((p) => {
               const r = primaryRole((roles.data ?? []).filter((x) => x.user_id === p.id).map((x) => x.role as AppRole));
               const emp = (emps.data ?? []).find((e) => e.user_id === p.id);
@@ -75,12 +90,15 @@ function Settings() {
                       </SelectContent>
                     </Select>
                   </TableCell>
+                  <TableCell className="text-right">{me.roles.includes("super_admin") && p.id !== me.userId && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => setToDeleteUser({ id: p.id, name: p.full_name ?? p.email })}><Trash2 />Apagar conta</Button>}</TableCell>
                 </TableRow>
               );
             })}</TableBody>
           </Table></div>
         )}
       </Panel>
+      {me.roles.includes("super_admin") && <Panel title="Controlo total do Super ADM"><div className="flex items-start gap-3 rounded-lg border p-4"><ShieldCheck className="mt-0.5 h-5 w-5 text-primary" /><div><div className="font-medium">Super Administrador ativo</div><p className="text-sm text-muted-foreground">Controlo integral de dados, perfis, permissões, estados, eliminações e auditoria.</p></div></div></Panel>}
+      <AlertDialog open={!!toDeleteUser} onOpenChange={(open) => !open && setToDeleteUser(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Apagar conta de utilizador?</AlertDialogTitle><AlertDialogDescription>Esta operação remove a conta de autenticação, perfil, funções e acessos. É irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => toDeleteUser && deleteUserAccount(toDeleteUser.id)}>Apagar definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       <Panel title="Matriz de permissões">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {ROLE_ORDER.map((r) => (
