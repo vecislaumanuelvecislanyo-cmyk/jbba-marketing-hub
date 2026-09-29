@@ -10,7 +10,7 @@ const dateRangeCheck = (s: string, e: string) => (v: Record<string, string>) =>
   v[s] && v[e] && v[e] < v[s] ? "A data de fim não pode ser anterior à data de início." : null;
 
 export const employeesConfig: EntityConfig = {
-  table: "employees", title: "Equipa", singular: "colaborador", order: "full_name",
+  table: "employees", title: "Equipa", singular: "colaborador", order: "full_name", createLabel: "Adicionar equipa",
   description: "Membros da equipa de Marketing e Comercial. Pode adicionar, alterar estado e remover membros autorizados.", write: "managers", deleteBy: "admin",
   searchKeys: ["full_name", "email", "position"],
   filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
@@ -39,7 +39,7 @@ const serviceField = (lbl = "Serviço"): FieldDef => ({ name: "service", label: 
 const SOURCES = list(["Website", "Referência", "Campanha", "Evento", "Chamada", "Redes sociais", "Visita de campo", "Outro"]);
 
 export const clientsConfig: EntityConfig = {
-  table: "clients", title: "Clientes", singular: "cliente", order: "name",
+  table: "clients", title: "Clientes", singular: "cliente", order: "name", createLabel: "Registar cliente",
   description: "Carteira de clientes com visão 360°.",
   searchKeys: ["name", "nif", "city", "sector", "email", "contact_name"],
   dateField: "created_at",
@@ -116,7 +116,7 @@ export const leadsConfig: EntityConfig = {
 };
 
 export const visitsConfig: EntityConfig = {
-  table: "visits", title: "Visitas", singular: "visita", order: "scheduled_at", inspectable: true, invalidatable: true,
+  table: "visits", title: "Visitas", singular: "visita", order: "scheduled_at", inspectable: true, invalidatable: true, createLabel: "Registar visita",
   description: "Agendamento e registo de visitas a clientes.",
   searchKeys: ["location", "objective", "outcome"],
   filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
@@ -173,7 +173,7 @@ export const followupsConfig: EntityConfig = {
 };
 
 export const activitiesConfig: EntityConfig = {
-  table: "activities", title: "Atividades", singular: "atividade", order: "activity_date", analyzable: true,
+  table: "activities", title: "Atividades", singular: "atividade", order: "activity_date", analyzable: true, createLabel: "Registar atividade",
   description: "Registo de chamadas, emails, reuniões e outras interações.",
   searchKeys: ["subject", "description"],
   dateField: "activity_date",
@@ -201,7 +201,7 @@ export const activitiesConfig: EntityConfig = {
 };
 
 export const campaignsConfig: EntityConfig = {
-  table: "campaigns", title: "Campanhas", singular: "campanha", write: "managers",
+  table: "campaigns", title: "Campanhas", singular: "campanha", write: "managers", createLabel: "Registar campanha",
   description: "Campanhas de marketing, execução e acompanhamento de desempenho.",
   searchKeys: ["name", "channel", "description"],
   filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
