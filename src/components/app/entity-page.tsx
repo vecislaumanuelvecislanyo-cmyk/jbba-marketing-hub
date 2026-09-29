@@ -212,7 +212,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
                       </button>
                     </TableHead>
                   ))}
-                  {(canWrite || canDelete || config.rowActions) && <TableHead className="w-24 text-right">Ações</TableHead>}
+                  {(canWrite || canDelete || config.rowActions || config.inspectable || config.invalidatable) && <TableHead className="w-24 text-right">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -226,7 +226,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
                         </div>
                       </TableCell>
                     ))}
-                    {(canWrite || canDelete || config.rowActions) && (
+                    {(canWrite || canDelete || config.rowActions || config.inspectable || config.invalidatable) && (
                       <TableCell className="text-right whitespace-nowrap">
                         {config.rowActions?.(r)}
                         {config.inspectable && <Button size="icon" variant="ghost" aria-label="Inspecionar" onClick={() => setInspecting(r)}><Eye /></Button>}
