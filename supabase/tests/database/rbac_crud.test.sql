@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(14);
 
 select has_table('public','user_roles','user_roles existe');
 select has_table('public','role_permissions','role_permissions existe');
