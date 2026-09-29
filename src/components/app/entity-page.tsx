@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowDownUp, BrainCircuit, Download, FileUp, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDownUp, BrainCircuit, Download, Eye, FileUp, Pencil, Plus, Search, Trash2, XCircle } from "lucide-react";
 import { downloadCsv, logEvent } from "@/lib/export";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -40,6 +40,8 @@ export type EntityConfig = {
   dateField?: string;
   importable?: boolean;
   analyzable?: boolean;
+  inspectable?: boolean;
+  invalidatable?: boolean;
 };
 
 export function useAllLookups(): Lookups {
@@ -61,6 +63,8 @@ export function EntityPage({ config }: { config: EntityConfig }) {
   const [sort, setSort] = useState<{ key: string; asc: boolean } | null>(null);
   const [datePreset, setDatePreset] = useState<"all" | "day" | "week" | "month" | "year">("all");
   const [analysisOpen, setAnalysisOpen] = useState(false);
+  const [inspecting, setInspecting] = useState<Row | null>(null);
+  const [toInvalidate, setToInvalidate] = useState<Row | null>(null);
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
   const canDelete = config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
@@ -130,6 +134,15 @@ export function EntityPage({ config }: { config: EntityConfig }) {
         return text(v) ?? (v == null ? "" : String(v));
       })));
     await logEvent("EXPORT", config.table, null, { format: "csv", rows: rows.length });
+  }
+
+
+  async function invalidateRecord() {
+    if (!toInvalidate) return;
+    const { error } = await db(config.table).update({ status: "rejeitado" }).eq("id", toInvalidate.id);
+    if (error) toast.error(errMsg(error));
+    else { toast.success("Registo invalidado."); inv(config.table, ...(config.invalidate ?? [])); }
+    setToInvalidate(null);
   }
 
   async function confirmDelete() {
@@ -202,6 +215,8 @@ export function EntityPage({ config }: { config: EntityConfig }) {
                     {(canWrite || canDelete || config.rowActions) && (
                       <TableCell className="text-right whitespace-nowrap">
                         {config.rowActions?.(r)}
+                        {config.inspectable && <Button size="icon" variant="ghost" aria-label="Inspecionar" onClick={() => setInspecting(r)}><Eye /></Button>}
+                        {config.invalidatable && isManager(me.roles) && <Button size="icon" variant="ghost" aria-label="Invalidar" onClick={() => setToInvalidate(r)}><XCircle className="text-destructive" /></Button>}
                         {canWrite && <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => { setEditing(r); setOpen(true); }}><Pencil /></Button>}
                         {canDelete && <Button size="icon" variant="ghost" aria-label="Eliminar" onClick={() => setToDelete(r)}><Trash2 className="text-destructive" /></Button>}
                       </TableCell>
@@ -217,6 +232,10 @@ export function EntityPage({ config }: { config: EntityConfig }) {
 
       <Dialog open={analysisOpen} onOpenChange={setAnalysisOpen}><DialogContent className="sm:max-w-lg"><DialogHeader><DialogTitle>Análise de {config.title}</DialogTitle><DialogDescription>Resumo operacional dos registos atualmente filtrados.</DialogDescription></DialogHeader><div className="grid gap-3 sm:grid-cols-3"><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Registos</div><div className="text-2xl font-semibold">{analysis.count}</div></div><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Estados</div><div className="mt-1 space-y-1 text-sm">{Object.entries(analysis.statusCounts).map(([s,n]) => <div key={s} className="flex justify-between gap-3"><span>{s}</span><b>{n}</b></div>)}</div></div><div className="rounded-lg border p-4"><div className="text-xs text-muted-foreground">Valor total</div><div className="text-xl font-semibold">{analysis.value.toLocaleString("pt-PT")} Kz</div></div></div></DialogContent></Dialog>
 
+
+
+      <Dialog open={!!inspecting} onOpenChange={(o) => !o && setInspecting(null)}><DialogContent className="sm:max-w-2xl"><DialogHeader><DialogTitle>Inspeção de {config.singular}</DialogTitle><DialogDescription>Detalhes completos do registo selecionado.</DialogDescription></DialogHeader>{inspecting && <dl className="grid max-h-[60vh] gap-3 overflow-y-auto sm:grid-cols-2">{Object.entries(inspecting).filter(([k]) => !["id"].includes(k)).map(([k,v]) => <div key={k} className="rounded-lg border p-3"><dt className="text-xs text-muted-foreground">{k.replaceAll("_"," ")}</dt><dd className="mt-1 break-words text-sm">{v == null ? "—" : typeof v === "object" ? JSON.stringify(v) : String(v)}</dd></div>)}</dl>}</DialogContent></Dialog>
+      <AlertDialog open={!!toInvalidate} onOpenChange={(o) => !o && setToInvalidate(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Invalidar {config.singular}?</AlertDialogTitle><AlertDialogDescription>O estado será alterado para Rejeitado e a ação ficará registada na auditoria.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={invalidateRecord}>Invalidar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
 
       <EntityForm open={open} onOpenChange={setOpen} table={config.table} title={config.singular} fields={config.fields} row={editing} validate={config.validate} invalidate={config.invalidate} />
 
