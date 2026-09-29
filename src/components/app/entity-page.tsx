@@ -107,7 +107,20 @@ export function EntityPage({ config }: { config: EntityConfig }) {
     const payload = lines.slice(1).map((line) => {
       const values = line.split(",").map((x) => x.trim().replace(/^"|"$/g, ""));
       const row: Record<string, unknown> = {};
-      headers.forEach((h, i) => { const key = aliases.get(h.toLowerCase()); if (key && values[i] !== "") row[key] = values[i]; });
+      const fieldMap = Object.fromEntries(config.fields.map((f) => [f.name, f]));
+      headers.forEach((h, i) => {
+        const key = aliases.get(h.toLowerCase());
+        if (!key || values[i] === "") return;
+        const field = fieldMap[key];
+        let value: unknown = values[i];
+        if (field?.type === "number") value = Number(values[i]);
+        if (field?.lookup) {
+          const lookup = lookups[field.lookup];
+          const match = Object.entries(lookup).find(([id, name]) => name.toLowerCase() === values[i].toLowerCase());
+          if (match) value = match[0];
+        }
+        row[key] = value;
+      });
       return row;
     }).filter((row) => Object.keys(row).length > 0);
     if (!payload.length) return toast.error("Nenhuma linha válida foi encontrada.");
