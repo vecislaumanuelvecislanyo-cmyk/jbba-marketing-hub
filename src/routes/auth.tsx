@@ -37,7 +37,7 @@ function AuthPage() {
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
   const [loginAs, setLoginAs] = useState<"super_admin" | "tecnico" | "ceo">("tecnico");
-  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(() => window.location.hash.includes("type=recovery"));
   const [recoveryPassword, setRecoveryPassword] = useState("");
   const [recoveryConfirm, setRecoveryConfirm] = useState("");
 
