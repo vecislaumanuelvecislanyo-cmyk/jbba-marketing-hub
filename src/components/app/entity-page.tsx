@@ -1,5 +1,6 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ArrowDownUp, Download, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { downloadCsv, logEvent } from "@/lib/export";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +35,7 @@ export type EntityConfig = {
   validate?: (v: Record<string, string>) => string | null;
   invalidate?: string[];
   headerExtra?: ReactNode;
+  rowActions?: (row: Row) => ReactNode;
 };
 
 export function useAllLookups(): Lookups {
@@ -52,6 +54,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
   const [editing, setEditing] = useState<Row | null>(null);
   const [open, setOpen] = useState(false);
   const [toDelete, setToDelete] = useState<Row | null>(null);
+  const [sort, setSort] = useState<{ key: string; asc: boolean } | null>(null);
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
   const canDelete = config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
@@ -62,8 +65,25 @@ export function EntityPage({ config }: { config: EntityConfig }) {
       for (const [k, v] of Object.entries(filters)) if (v && v !== "all" && String(r[k]) !== v) return false;
       if (!s) return true;
       return config.searchKeys.some((k) => String(r[k] ?? "").toLowerCase().includes(s));
+    }).sort((a, b) => {
+      if (!sort) return 0;
+      const x = a[sort.key] ?? "", y = b[sort.key] ?? "";
+      const c = typeof x === "number" || typeof y === "number" ? Number(x) - Number(y) : String(x).localeCompare(String(y), "pt");
+      return sort.asc ? c : -c;
     });
-  }, [q.data, search, filters, config.searchKeys]);
+  }, [q.data, search, filters, config.searchKeys, sort]);
+
+  async function exportCsv() {
+    const text = (n: ReactNode) => (typeof n === "string" || typeof n === "number" ? n : null);
+    downloadCsv(`${config.table}-${new Date().toISOString().slice(0, 10)}.csv`, config.columns.map((c) => c.label),
+      rows.map((r) => config.columns.map((c) => {
+        const v = r[c.key];
+        const lk = (lookups as Record<string, Record<string, string>>);
+        for (const t of Object.values(lk)) if (typeof v === "string" && t[v]) return t[v];
+        return text(v) ?? (v == null ? "" : String(v));
+      })));
+    await logEvent("EXPORT", config.table, null, { format: "csv", rows: rows.length });
+  }
 
   async function confirmDelete() {
     if (!toDelete) return;
@@ -80,6 +100,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
         description={config.description}
         actions={<>
           {config.headerExtra}
+          <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />CSV</Button>
           {canWrite && <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus />Novo</Button>}
         </>}
       />
@@ -107,8 +128,14 @@ export function EntityPage({ config }: { config: EntityConfig }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  {config.columns.map((c) => <TableHead key={c.key} className={c.className}>{c.label}</TableHead>)}
-                  {(canWrite || canDelete) && <TableHead className="w-24 text-right">Ações</TableHead>}
+                  {config.columns.map((c) => (
+                    <TableHead key={c.key} className={c.className}>
+                      <button type="button" className="inline-flex items-center gap-1 hover:text-foreground" onClick={() => setSort((p) => ({ key: c.key, asc: p?.key === c.key ? !p.asc : true }))}>
+                        {c.label}<ArrowDownUp className={sort?.key === c.key ? "h-3 w-3 text-primary" : "h-3 w-3 opacity-40"} />
+                      </button>
+                    </TableHead>
+                  ))}
+                  {(canWrite || canDelete || config.rowActions) && <TableHead className="w-24 text-right">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,8 +149,9 @@ export function EntityPage({ config }: { config: EntityConfig }) {
                         </div>
                       </TableCell>
                     ))}
-                    {(canWrite || canDelete) && (
+                    {(canWrite || canDelete || config.rowActions) && (
                       <TableCell className="text-right whitespace-nowrap">
+                        {config.rowActions?.(r)}
                         {canWrite && <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => { setEditing(r); setOpen(true); }}><Pencil /></Button>}
                         {canDelete && <Button size="icon" variant="ghost" aria-label="Eliminar" onClick={() => setToDelete(r)}><Trash2 className="text-destructive" /></Button>}
                       </TableCell>
