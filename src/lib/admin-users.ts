@@ -84,6 +84,11 @@ export const createManagedUser = createServerFn({ method: "POST" })
     const userId = created.user.id;
 
     try {
+      // handle_new_user may auto-associate an employee by email before this
+      // managed-profile flow applies the explicit association chosen by the admin.
+      const { error: clearEmployeeError } = await service.from("employees").update({ user_id: null }).eq("user_id", userId);
+      if (clearEmployeeError) throw new Error(clearEmployeeError.message);
+
       const { error: roleDeleteError } = await service.from("user_roles").delete().eq("user_id", userId);
       if (roleDeleteError) throw new Error(roleDeleteError.message);
 
@@ -103,6 +108,9 @@ export const createManagedUser = createServerFn({ method: "POST" })
         if (employeeUpdateError) throw new Error(employeeUpdateError.message);
       }
     } catch (error) {
+      await service.from("employees").update({ user_id: null }).eq("user_id", userId);
+      await service.from("profiles").delete().eq("id", userId);
+      await service.from("user_roles").delete().eq("user_id", userId);
       await service.auth.admin.deleteUser(userId);
       throw error;
     }
