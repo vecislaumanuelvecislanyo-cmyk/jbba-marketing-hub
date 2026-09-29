@@ -36,8 +36,7 @@ const reportsConfig: EntityConfig = {
   columns: [
     { key: "report_type", label: "Tipo", render: (r) => String(r.report_type) },
     { key: "period_start", label: "Período", render: (r) => fmtDate(r.period_start) + " – " + fmtDate(r.period_end) },
-    { key: "generated_by", label: "Gerado por", render: (r) => String(r.generated_by ?? "—") },
-    { key: "created_at", label: "Criado em", render: (r) => fmtDate(r.created_at, true) },
+
   ],
 };
 
