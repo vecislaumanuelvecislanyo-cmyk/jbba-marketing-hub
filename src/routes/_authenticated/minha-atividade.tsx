@@ -1,8 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Plus } from "lucide-react";
+import { Check, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, StatusBadge } from "@/components/app/common";
 import { GoalBar } from "@/components/app/kpi";
 import { EntityForm } from "@/components/app/entity-form";
@@ -13,7 +15,7 @@ import { fmtDate, fmtMoney, label } from "@/lib/format";
 import { pageHead } from "@/lib/head";
 import { pct, targetActual } from "@/lib/targets";
 import { useMe } from "@/lib/auth";
-import { canWriteOperational } from "@/lib/rbac";
+import { canWriteOperational, isManager } from "@/lib/rbac";
 
 export const Route = createFileRoute("/_authenticated/minha-atividade")({
   head: pageHead("Minha Atividade", "Agenda e tarefas do dia."),
@@ -26,6 +28,8 @@ function MyActivity() {
   const leads = useLookup("leads"), clients = useLookup("clients");
   const inv = useInvalidate();
   const [form, setForm] = useState<null | "activities" | "visits" | "followups">(null);
+  const [activityPeriod, setActivityPeriod] = useState<"day" | "week" | "month" | "year">("day");
+  const [activityToDelete, setActivityToDelete] = useState<Record<string, unknown> | null>(null);
   const canWrite = canWriteOperational(me.roles);
 
   if (!me.employeeId) return (
@@ -40,6 +44,24 @@ function MyActivity() {
   const fups = mine(d.followups).filter((f) => f.status === "pendente").sort((a, b) => String(a.due_date).localeCompare(String(b.due_date)));
   const visits = mine(d.visits).filter((v) => v.status === "agendada").sort((a, b) => String(a.scheduled_at).localeCompare(String(b.scheduled_at)));
   const targets = d.targets.filter((x) => x.employee_id === me.employeeId && x.period_start <= t && x.period_end >= t);
+  const activityRows = (() => {
+    const now = new Date(); const start = new Date(now); start.setHours(0, 0, 0, 0);
+    if (activityPeriod === "week") start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+    if (activityPeriod === "month") start.setDate(1);
+    if (activityPeriod === "year") start.setMonth(0, 1);
+    const end = new Date(start);
+    if (activityPeriod === "day") end.setHours(23, 59, 59, 999);
+    if (activityPeriod === "week") { end.setDate(end.getDate() + 6); end.setHours(23, 59, 59, 999); }
+    if (activityPeriod === "month") { end.setMonth(end.getMonth() + 1, 0); end.setHours(23, 59, 59, 999); }
+    if (activityPeriod === "year") { end.setFullYear(end.getFullYear() + 1, 0, 0); end.setHours(23, 59, 59, 999); }
+    return mine(d.activities).filter((a) => { const dt = new Date(String(a.activity_date)); return dt >= start && dt <= end; }).sort((a, b) => String(b.activity_date).localeCompare(String(a.activity_date)));
+  })();
+
+  async function deleteActivity(id: string) {
+    const { error } = await db("activities").delete().eq("id", id);
+    if (error) toast.error(errMsg(error)); else { toast.success("Atividade eliminada."); inv("activities"); }
+    setActivityToDelete(null);
+  }
 
   async function done(id: string) {
     const { error } = await db("followups").update({ status: "concluido", completed_at: new Date().toISOString() }).eq("id", id);
@@ -86,6 +108,10 @@ function MyActivity() {
           ))}</ul>}
         </Panel>
       </div>
+      <Panel title="Registo de atividades" actions={<div className="flex flex-wrap items-center gap-2"><Select value={activityPeriod} onValueChange={(v) => setActivityPeriod(v as typeof activityPeriod)}><SelectTrigger className="h-8 w-36"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="day">Por dia</SelectItem><SelectItem value="week">Por semana</SelectItem><SelectItem value="month">Por mês</SelectItem><SelectItem value="year">Por ano</SelectItem></SelectContent></Select>{canWrite && <Button size="sm" onClick={() => setForm("activities")}><Plus />Registar</Button>}</div>}>
+        {activityRows.length === 0 ? <EmptyState text="Não existem atividades no período selecionado." /> : <ul className="divide-y">{activityRows.map((a) => <li key={a.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div className="min-w-0"><div className="font-medium">{a.subject}</div><div className="text-sm text-muted-foreground">{fmtDate(String(a.activity_date), true)} · {label(String(a.type))}{a.description ? ` · ${a.description}` : ""}</div><StatusBadge value={String(a.status ?? "pendente")} /></div>{isManager(me.roles) && <Button size="icon" variant="ghost" aria-label="Eliminar atividade" onClick={() => setActivityToDelete(a)}><Trash2 className="text-destructive" /></Button>}</li>)}</ul>}
+      </Panel>
+      <AlertDialog open={!!activityToDelete} onOpenChange={(o) => !o && setActivityToDelete(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Eliminar atividade?</AlertDialogTitle><AlertDialogDescription>Esta operação é irreversível e ficará registada na auditoria.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground" onClick={() => activityToDelete && deleteActivity(String(activityToDelete.id))}>Eliminar</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       {form && <EntityForm open onOpenChange={(o) => !o && setForm(null)} table={cfg.table} title={cfg.singular} fields={cfg.fields} validate={cfg.validate} />}
     </div>
   );
