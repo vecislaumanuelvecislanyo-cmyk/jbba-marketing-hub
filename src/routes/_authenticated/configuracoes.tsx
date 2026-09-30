@@ -74,7 +74,7 @@ function Settings() {
     if (userId === me.userId && role !== me.role) return toast.error("Não pode alterar o seu próprio perfil.");
     const del = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (del.error) return toast.error(errMsg(del.error));
-    const ins = await supabase.from("user_roles").insert({ user_id: userId, role });
+    const ins = await supabase.from("user_roles").insert({ user_id: userId, role: role as never });
     if (ins.error) return toast.error(errMsg(ins.error));
     toast.success("Perfil atualizado"); inv("user_roles");
   }
