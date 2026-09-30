@@ -27,7 +27,6 @@ export type Database = {
           is_demo: boolean
           lead_id: string | null
           outcome: string | null
-          status: string
           subject: string
           type: string
           updated_at: string
@@ -45,7 +44,6 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           outcome?: string | null
-          status?: string
           subject: string
           type?: string
           updated_at?: string
@@ -63,7 +61,6 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           outcome?: string | null
-          status?: string
           subject?: string
           type?: string
           updated_at?: string
@@ -1022,7 +1019,6 @@ export type Database = {
           period_type: string
           province: string | null
           service: string | null
-          status: string
           target_value: number
           updated_at: string
           updated_by: string | null
@@ -1040,7 +1036,6 @@ export type Database = {
           period_type?: string
           province?: string | null
           service?: string | null
-          status?: string
           target_value: number
           updated_at?: string
           updated_by?: string | null
@@ -1058,7 +1053,6 @@ export type Database = {
           period_type?: string
           province?: string | null
           service?: string | null
-          status?: string
           target_value?: number
           updated_at?: string
           updated_by?: string | null
@@ -1207,7 +1201,6 @@ export type Database = {
     }
     Enums: {
       app_role:
-        | "super_admin"
         | "admin"
         | "diretor_geral"
         | "gestor_marketing"
@@ -1341,7 +1334,6 @@ export const Constants = {
   public: {
     Enums: {
       app_role: [
-        "super_admin",
         "admin",
         "diretor_geral",
         "gestor_marketing",

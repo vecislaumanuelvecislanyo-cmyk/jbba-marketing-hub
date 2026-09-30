@@ -45,7 +45,7 @@ function AuthPage() {
     const { data } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") setRecoveryMode(true);
     });
-    supabase.auth.getSession().then(({ data: sessionData }) => sessionData.session && !recoveryMode && nav({ to: "/dashboard" }));
+    supabase.auth.getSession().then(({ data: sessionData }) => { if (sessionData.session && !recoveryMode) nav({ to: "/dashboard" }); });
     return () => data.subscription.unsubscribe();
   }, [nav, recoveryMode]);
 
