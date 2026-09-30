@@ -17,7 +17,9 @@ function env(name: string) {
   return process.env[name] ?? import.meta.env[name] ?? "";
 }
 
-const authMiddleware = createMiddleware({ type: "function" }).server(async ({ next, request }) => {
+const authMiddleware = createMiddleware({ type: "function" }).server(async ({ next }) => {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const request = getRequest();
   const authorization = request.headers.get("authorization");
   const token = authorization?.replace(/^Bearer\s+/i, "").trim();
   const url = env("SUPABASE_URL");
