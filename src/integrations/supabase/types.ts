@@ -27,6 +27,7 @@ export type Database = {
           is_demo: boolean
           lead_id: string | null
           outcome: string | null
+          status: string
           subject: string
           type: string
           updated_at: string
@@ -44,6 +45,7 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           outcome?: string | null
+          status?: string
           subject: string
           type?: string
           updated_at?: string
@@ -61,6 +63,7 @@ export type Database = {
           is_demo?: boolean
           lead_id?: string | null
           outcome?: string | null
+          status?: string
           subject?: string
           type?: string
           updated_at?: string
@@ -1019,6 +1022,7 @@ export type Database = {
           period_type: string
           province: string | null
           service: string | null
+          status: string
           target_value: number
           updated_at: string
           updated_by: string | null
@@ -1036,6 +1040,7 @@ export type Database = {
           period_type?: string
           province?: string | null
           service?: string | null
+          status?: string
           target_value: number
           updated_at?: string
           updated_by?: string | null
@@ -1053,6 +1058,7 @@ export type Database = {
           period_type?: string
           province?: string | null
           service?: string | null
+          status?: string
           target_value?: number
           updated_at?: string
           updated_by?: string | null
@@ -1206,6 +1212,7 @@ export type Database = {
         | "gestor_marketing"
         | "promotor"
         | "visualizador"
+        | "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1339,6 +1346,7 @@ export const Constants = {
         "gestor_marketing",
         "promotor",
         "visualizador",
+        "super_admin",
       ],
     },
   },

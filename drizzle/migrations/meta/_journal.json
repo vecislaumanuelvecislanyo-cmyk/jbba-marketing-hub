@@ -15,6 +15,20 @@
       "when": 1790683918529,
       "tag": "0001_phase2_fields_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790765650626,
+      "tag": "0002_add_super_admin_enum",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790765673289,
+      "tag": "0003_runtime_schema_sync",
+      "breakpoints": true
     }
   ]
 }
