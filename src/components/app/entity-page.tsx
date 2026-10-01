@@ -28,7 +28,7 @@ export type EntityConfig = {
   fields: FieldDef[];
   columns: ColumnDef[];
   searchKeys: string[];
-  filters?: { key: string; label: string; options: { value: string; label: string }[] }[];
+  filters?: { key: string; label: string; options: { value: string; label: string }[]; match?: (row: Row, value: string) => boolean }[];
   order?: string;
   /** who may create/edit: operational = managers + promotor (scoped by RLS), managers, admin */
   write?: "operational" | "managers" | "admin";
@@ -84,7 +84,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
     if (datePreset === "month") { end.setMonth(end.getMonth() + 1, 0); end.setHours(23, 59, 59, 999); }
     if (datePreset === "year") { end.setFullYear(end.getFullYear() + 1, 0, 0); end.setHours(23, 59, 59, 999); }
     return (q.data ?? []).filter((r) => {
-      for (const [k, v] of Object.entries(filters)) if (v && v !== "all" && String(r[k]) !== v) return false;
+      for (const [k, v] of Object.entries(filters)) { if (!v || v === "all") continue; const fd = config.filters?.find((f) => f.key === k); if (fd?.match ? !fd.match(r, v) : String(r[k]) !== v) return false; }
       if (config.dateField && datePreset !== "all") { const d = new Date(String(r[config.dateField] ?? "")); if (Number.isNaN(d.getTime()) || d < start || d > end) return false; }
       if (!s) return true;
       return config.searchKeys.some((k) => String(r[k] ?? "").toLowerCase().includes(s));
