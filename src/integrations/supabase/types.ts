@@ -1187,6 +1187,7 @@ export type Database = {
     Functions: {
       can_read_all: { Args: { _user_id: string }; Returns: boolean }
       current_employee_id: { Args: never; Returns: string }
+      has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
         Returns: boolean
