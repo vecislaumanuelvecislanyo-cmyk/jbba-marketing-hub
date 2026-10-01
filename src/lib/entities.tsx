@@ -197,14 +197,28 @@ export const activitiesConfig: EntityConfig = {
     { key: "duration_minutes", label: "Duração", render: (r) => (r.duration_minutes ? `${r.duration_minutes} min` : "—") },
     { key: "employee_id", label: "Responsável", render: (r, l) => l.employees[r.employee_id] ?? "—" },
     { key: "client_id", label: "Cliente", render: (r, l) => l.clients[r.client_id] ?? "—" },
+    { key: "status", label: "Estado", render: (r) => <StatusBadge value={r.status} /> },
   ],
+};
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+const campaignPhase = (r: Record<string, any>) => {
+  const t = todayIso();
+  if (r.status === "rejeitado") return "encerrada";
+  if (r.start_date && r.start_date > t) return "agendada";
+  if (r.end_date && r.end_date < t) return "encerrada";
+  return "andamento";
 };
 
 export const campaignsConfig: EntityConfig = {
   table: "campaigns", title: "Campanhas", singular: "campanha", write: "managers", createLabel: "Registar campanha",
   description: "Campanhas de marketing, execução e acompanhamento de desempenho.",
   searchKeys: ["name", "channel", "description"],
-  filters: [{ key: "status", label: "Estado", options: WORKFLOW_STATES }],
+  analyzable: true, dateField: "start_date",
+  filters: [
+    { key: "phase", label: "Execução", options: [{ value: "andamento", label: "Em andamento" }, { value: "agendada", label: "Agendadas" }, { value: "encerrada", label: "Encerradas" }], match: (r, v) => campaignPhase(r) === v },
+    { key: "status", label: "Estado", options: WORKFLOW_STATES },
+  ],
   validate: dateRangeCheck("start_date", "end_date"),
   fields: [
     { name: "name", label: "Nome", type: "text", required: true, wide: true },
@@ -223,6 +237,7 @@ export const campaignsConfig: EntityConfig = {
     { key: "channel", label: "Canal", render: (r) => r.channel ?? "—" },
     { key: "start_date", label: "Período", render: (r) => `${fmtDate(r.start_date)} – ${fmtDate(r.end_date)}` },
     { key: "budget", label: "Orçamento", render: (r) => fmtMoney(r.budget) },
+    { key: "phase", label: "Execução", render: (r) => { const p = campaignPhase(r); return <StatusBadge tone={p === "andamento" ? "success" : p === "agendada" ? "info" : "neutral"} text={p === "andamento" ? "Em andamento" : p === "agendada" ? "Agendada" : "Encerrada"} />; } },
     { key: "status", label: "Estado", render: (r) => <StatusBadge value={r.status} /> },
   ],
 };
