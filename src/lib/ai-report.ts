@@ -31,9 +31,9 @@ export const analyzeReport = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(inputSchema)
   .handler(async ({ data, context }) => {
-    const gatewayKey = env("AI_GATEWAY_API_KEY");
+    const gatewayKey = env("LOVABLE_API_KEY");
     if (!gatewayKey) throw new Error("AI Gateway não está configurado no servidor.");
-    const model = env("AI_GATEWAY_MODEL") || "anthropic/claude-sonnet-4.6";
+    const model = "openai/gpt-6-astra";
     const prompt = [
       "És o analista de gestão da JBBA.",
       "Analisa apenas os dados fornecidos. Não inventes factos.",
@@ -44,10 +44,10 @@ export const analyzeReport = createServerFn({ method: "POST" })
       "Total de registos: " + data.count,
       "Estados: " + JSON.stringify(data.statuses),
     ].join("\n");
-    const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: "Bearer " + gatewayKey, "Content-Type": "application/json" },
-      body: JSON.stringify({ model, temperature: 0.2, messages: [{ role: "system", content: "Responde apenas JSON válido." }, { role: "user", content: prompt }] }),
+      headers: { "Lovable-API-Key": gatewayKey, "X-Lovable-AIG-SDK": "fetch", "Content-Type": "application/json" },
+      body: JSON.stringify({ model, reasoning_effort: "low", messages: [{ role: "system", content: "Responde apenas JSON válido." }, { role: "user", content: prompt }] }),
     });
     if (!response.ok) throw new Error("AI Gateway respondeu com " + response.status + ".");
     const payload = await response.json() as { choices?: Array<{ message?: { content?: string | null } }> };

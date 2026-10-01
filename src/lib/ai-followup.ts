@@ -45,10 +45,10 @@ export const suggestFollowup = createServerFn({ method: "POST" })
   .middleware([authMiddleware])
   .validator(inputSchema)
   .handler(async ({ data, context }) => {
-    const gatewayKey = env("AI_GATEWAY_API_KEY");
+    const gatewayKey = env("LOVABLE_API_KEY");
     if (!gatewayKey) throw new Error("AI Gateway não está configurado no servidor.");
 
-    const model = env("AI_GATEWAY_MODEL") || "anthropic/claude-sonnet-4.6";
+    const model = "openai/gpt-6-astra";
     const prompt = [
       "És um assistente de vendas da JBBA. Sugere um único próximo follow-up, curto e acionável.",
       "Não inventes factos. Usa apenas a etapa do pipeline e as notas fornecidas.",
@@ -64,12 +64,12 @@ export const suggestFollowup = createServerFn({ method: "POST" })
       `Notas da interação: ${data.notes || "não foram registadas"}`,
     ].join("\n");
 
-    const response = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: { Authorization: `Bearer ${gatewayKey}`, "Content-Type": "application/json" },
+      headers: { "Lovable-API-Key": gatewayKey, "X-Lovable-AIG-SDK": "fetch", "Content-Type": "application/json" },
       body: JSON.stringify({
         model,
-        temperature: 0.2,
+        reasoning_effort: "low",
         messages: [
           { role: "system", content: "Responde apenas com o JSON solicitado." },
           { role: "user", content: prompt },
