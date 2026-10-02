@@ -58,6 +58,10 @@ export const createManagedUser = createServerFn({ method: "POST" })
       auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
 
+    if (data.role === "promotor" && !context.actorRoles.includes("super_admin")) {
+      throw new Error("Apenas o Super ADM pode criar contas de Técnico/Promotor.");
+    }
+
     if (data.role === "super_admin" && !context.actorRoles.includes("super_admin")) {
       const { count, error } = await service.from("user_roles").select("id", { count: "exact", head: true }).eq("role", "super_admin");
       if (error) throw new Error("Não foi possível validar o Super ADM existente.");
