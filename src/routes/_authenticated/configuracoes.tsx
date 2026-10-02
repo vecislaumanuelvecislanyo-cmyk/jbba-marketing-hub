@@ -121,7 +121,7 @@ function Settings() {
                   <TableCell>
                     <Select value={r} onValueChange={(v) => setRole(p.id, v as AppRole)}>
                       <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
-                      <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
+                      <SelectContent>{ROLE_ORDER.filter((x) => (x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin) && (x !== "promotor" || me.roles.includes("super_admin"))).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell>
@@ -153,7 +153,7 @@ function Settings() {
             <div className="space-y-1.5"><Label>Perfil</Label>
               <Select value={newProfile.role} onValueChange={(v) => setNewProfile((p) => ({ ...p, role: v as AppRole }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>{ROLE_ORDER.filter((x) => x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
+                <SelectContent>{ROLE_ORDER.filter((x) => (x !== "super_admin" || me.roles.includes("super_admin") || !hasSuperAdmin) && (x !== "promotor" || me.roles.includes("super_admin"))).map((x) => <SelectItem key={x} value={x}>{ROLE_LABELS[x]}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1.5"><Label>Colaborador associado</Label>
