@@ -138,15 +138,15 @@ function AuthPage() {
                 ))}
               </div>
             </div>
-            <TabsList className="grid w-full grid-cols-2"><TabsTrigger value="in">Entrar</TabsTrigger><TabsTrigger value="up">Criar conta</TabsTrigger></TabsList>
-            {(["in", "up"] as const).map((m) => (
+            <TabsList className="grid w-full grid-cols-1"><TabsTrigger value="in">Entrar</TabsTrigger></TabsList>
+            {(["in"] as const).map((m) => (
               <TabsContent key={m} value={m}>
                 <form className="mt-4 space-y-4" onSubmit={(e) => { e.preventDefault(); go(m); }}>
-                  {m === "up" && <div className="space-y-1.5"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>}
                   <div className="space-y-1.5"><Label>Email</Label><Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
                   <div className="space-y-1.5"><Label>Palavra-passe</Label><Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
-                  {m === "in" && <div className="text-right"><Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={requestPasswordReset} disabled={busy}>Alterar a senha</Button></div>}
-                  <Button className="w-full" disabled={busy}>{m === "in" ? "Entrar" : "Criar conta"}</Button>
+                  <div className="text-right"><Button type="button" variant="link" className="h-auto p-0 text-sm" onClick={requestPasswordReset} disabled={busy}>Alterar a senha</Button></div>
+                  <Button className="w-full" disabled={busy}>Entrar</Button>
+                  <p className="text-xs text-muted-foreground">As contas são criadas pelo Super ADM. Use o email e a palavra-passe que lhe foram atribuídos.</p>
                 </form>
               </TabsContent>
             ))}
