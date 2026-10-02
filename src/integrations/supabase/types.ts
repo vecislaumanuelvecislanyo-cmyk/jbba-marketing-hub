@@ -537,6 +537,97 @@ export type Database = {
           },
         ]
       }
+      field_reports: {
+        Row: {
+          activities_done: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          employee_id: string | null
+          id: string
+          issues: string | null
+          location: string | null
+          next_steps: string | null
+          report_date: string
+          results: string | null
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submitted_at: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+          visit_id: string | null
+        }
+        Insert: {
+          activities_done?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          id?: string
+          issues?: string | null
+          location?: string | null
+          next_steps?: string | null
+          report_date?: string
+          results?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_id?: string | null
+        }
+        Update: {
+          activities_done?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          employee_id?: string | null
+          id?: string
+          issues?: string | null
+          location?: string | null
+          next_steps?: string | null
+          report_date?: string
+          results?: string | null
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submitted_at?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "field_reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_reports_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "field_reports_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       followups: {
         Row: {
           client_id: string | null
@@ -1079,6 +1170,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          permission: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          permission?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {

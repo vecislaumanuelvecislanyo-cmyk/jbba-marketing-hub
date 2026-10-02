@@ -1,6 +1,6 @@
 import {
   LayoutDashboard, UserCheck, Users, Target, Building2, MapPin, BellRing, Megaphone, Trophy,
-  FileText, FileSignature, CalendarDays, BarChart3, Bell, ShieldCheck, Settings, Activity,
+  FileText, FileSignature, CalendarDays, BarChart3, Bell, ShieldCheck, Settings, Activity, ClipboardList,
 } from "lucide-react";
 import type { Access } from "./rbac";
 
@@ -13,6 +13,7 @@ export const NAV: { title: string; url: string; icon: typeof LayoutDashboard; ac
   { title: "Visitas", url: "/visitas", icon: MapPin, access: "all", group: "Comercial" },
   { title: "Follow-ups", url: "/followups", icon: BellRing, access: "all", group: "Comercial" },
   { title: "Atividades", url: "/atividades", icon: Activity, access: "all", group: "Comercial" },
+  { title: "Relatórios de Campo", url: "/relatorios-campo", icon: ClipboardList, access: "all", group: "Comercial" },
   { title: "Campanhas", url: "/campanhas", icon: Megaphone, access: "all", group: "Marketing" },
   { title: "Metas", url: "/metas", icon: Trophy, access: "all", group: "Marketing" },
   { title: "Propostas", url: "/propostas", icon: FileText, access: "all", group: "Marketing" },

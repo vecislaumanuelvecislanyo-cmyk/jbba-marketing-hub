@@ -12,7 +12,7 @@ select policies_are('public','leads',ARRAY['read scoped','insert scoped','update
 select policies_are('public','followups',ARRAY['read scoped','insert scoped','update scoped','delete managers']);
 select policies_are('public','employees',ARRAY['employees read','employees insert','employees update','employees delete']);
 select policies_are('public','user_roles',ARRAY['own or managers read roles','admin insert roles','admin update roles','admin delete roles']);
-select policies_are('public','role_permissions',ARRAY['Autenticados leem permissões','Admin gere permissões','Super admin gere perfis']);
+select policies_are('public','role_permissions',ARRAY['Autenticados leem permissões','Super admin gere perfis']);
 select function_returns('public','has_permission',ARRAY['uuid','text'],'boolean','has_permission devolve boolean');
 select function_returns('public','has_role',ARRAY['uuid','public.app_role'],'boolean','has_role devolve boolean');
 select function_returns('public','is_manager',ARRAY['uuid'],'boolean','is_manager devolve boolean');
