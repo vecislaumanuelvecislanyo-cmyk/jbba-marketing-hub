@@ -27,6 +27,7 @@ import { Route as AuthenticatedMinhaAtividadeRouteImport } from './routes/_authe
 import { Route as AuthenticatedNotificacoesRouteImport } from './routes/_authenticated/notificacoes'
 import { Route as AuthenticatedPropostasRouteImport } from './routes/_authenticated/propostas'
 import { Route as AuthenticatedRelatoriosRouteImport } from './routes/_authenticated/relatorios'
+import { Route as AuthenticatedRelatoriosCampoRouteImport } from './routes/_authenticated/relatorios-campo'
 import { Route as AuthenticatedVisitasRouteImport } from './routes/_authenticated/visitas'
 import { Route as AuthenticatedClientesIndexRouteImport } from './routes/_authenticated/clientes.index'
 import { Route as AuthenticatedClientesIdRouteImport } from './routes/_authenticated/clientes.$id'
@@ -123,6 +124,12 @@ const AuthenticatedRelatoriosRoute = AuthenticatedRelatoriosRouteImport.update({
   path: '/relatorios',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedRelatoriosCampoRoute =
+  AuthenticatedRelatoriosCampoRouteImport.update({
+    id: '/relatorios-campo',
+    path: '/relatorios-campo',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedVisitasRoute = AuthenticatedVisitasRouteImport.update({
   id: '/visitas',
   path: '/visitas',
@@ -158,6 +165,7 @@ export interface FileRoutesByFullPath {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/relatorios-campo': typeof AuthenticatedRelatoriosCampoRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/clientes/$id': typeof AuthenticatedClientesIdRoute
   '/clientes/': typeof AuthenticatedClientesIndexRoute
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/propostas': typeof AuthenticatedPropostasRoute
   '/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/relatorios-campo': typeof AuthenticatedRelatoriosCampoRoute
   '/visitas': typeof AuthenticatedVisitasRoute
   '/': typeof AuthenticatedIndexRoute
   '/clientes/$id': typeof AuthenticatedClientesIdRoute
@@ -203,6 +212,7 @@ export interface FileRoutesById {
   '/_authenticated/notificacoes': typeof AuthenticatedNotificacoesRoute
   '/_authenticated/propostas': typeof AuthenticatedPropostasRoute
   '/_authenticated/relatorios': typeof AuthenticatedRelatoriosRoute
+  '/_authenticated/relatorios-campo': typeof AuthenticatedRelatoriosCampoRoute
   '/_authenticated/visitas': typeof AuthenticatedVisitasRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/clientes/$id': typeof AuthenticatedClientesIdRoute
@@ -228,6 +238,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/propostas'
     | '/relatorios'
+    | '/relatorios-campo'
     | '/visitas'
     | '/clientes/$id'
     | '/clientes/'
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/notificacoes'
     | '/propostas'
     | '/relatorios'
+    | '/relatorios-campo'
     | '/visitas'
     | '/'
     | '/clientes/$id'
@@ -272,6 +284,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notificacoes'
     | '/_authenticated/propostas'
     | '/_authenticated/relatorios'
+    | '/_authenticated/relatorios-campo'
     | '/_authenticated/visitas'
     | '/_authenticated/'
     | '/_authenticated/clientes/$id'
@@ -411,6 +424,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRelatoriosRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/relatorios-campo': {
+      id: '/_authenticated/relatorios-campo'
+      path: '/relatorios-campo'
+      fullPath: '/relatorios-campo'
+      preLoaderRoute: typeof AuthenticatedRelatoriosCampoRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/visitas': {
       id: '/_authenticated/visitas'
       path: '/visitas'
@@ -451,6 +471,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificacoesRoute: typeof AuthenticatedNotificacoesRoute
   AuthenticatedPropostasRoute: typeof AuthenticatedPropostasRoute
   AuthenticatedRelatoriosRoute: typeof AuthenticatedRelatoriosRoute
+  AuthenticatedRelatoriosCampoRoute: typeof AuthenticatedRelatoriosCampoRoute
   AuthenticatedVisitasRoute: typeof AuthenticatedVisitasRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedClientesIdRoute: typeof AuthenticatedClientesIdRoute
@@ -473,6 +494,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificacoesRoute: AuthenticatedNotificacoesRoute,
   AuthenticatedPropostasRoute: AuthenticatedPropostasRoute,
   AuthenticatedRelatoriosRoute: AuthenticatedRelatoriosRoute,
+  AuthenticatedRelatoriosCampoRoute: AuthenticatedRelatoriosCampoRoute,
   AuthenticatedVisitasRoute: AuthenticatedVisitasRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedClientesIdRoute: AuthenticatedClientesIdRoute,
