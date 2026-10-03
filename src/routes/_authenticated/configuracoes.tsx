@@ -58,9 +58,10 @@ function Settings() {
           password: newProfile.password,
           role: newProfile.role,
           employeeId: newProfile.employeeId === NONE ? null : newProfile.employeeId,
+          redirectTo: `${window.location.origin}/auth`,
         },
       });
-      toast.success("Perfil criado e pronto para iniciar sessão.");
+      toast.success("Conta criada. Foi enviado um link de validação para o email do utilizador.");
       setCreateOpen(false);
       setNewProfile({ fullName: "", email: "", password: "", role: "visualizador", employeeId: NONE });
       inv("profiles", "user_roles", "employees", "me");
