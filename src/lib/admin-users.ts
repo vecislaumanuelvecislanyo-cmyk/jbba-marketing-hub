@@ -8,6 +8,7 @@ const inputSchema = z.object({
   password: z.string().min(8, "A palavra-passe deve ter pelo menos 8 caracteres.").max(72),
   role: z.enum(["super_admin", "admin", "diretor_geral", "gestor_marketing", "promotor", "visualizador"]),
   employeeId: z.string().uuid().nullable().optional(),
+  redirectTo: z.string().url().max(500).optional(),
 });
 
 
@@ -82,7 +83,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
     const { data: created, error: createError } = await service.auth.admin.createUser({
       email: data.email,
       password: data.password,
-      email_confirm: true,
+      email_confirm: false,
       user_metadata: { full_name: data.fullName },
     });
     if (createError || !created.user) throw new Error(createError?.message ?? "Não foi possível criar a conta.");
@@ -120,6 +121,17 @@ export const createManagedUser = createServerFn({ method: "POST" })
       await service.auth.admin.deleteUser(userId);
       throw error;
     }
+
+    // Send the account validation link to the new user's email.
+    const publicClient = createClient(url, env("SUPABASE_PUBLISHABLE_KEY"), {
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+    });
+    const { error: linkError } = await publicClient.auth.resend({
+      type: "signup",
+      email: data.email,
+      ...(data.redirectTo ? { options: { emailRedirectTo: data.redirectTo } } : {}),
+    });
+    if (linkError) throw new Error(`Conta criada, mas o link de validação não foi enviado: ${linkError.message}`);
 
     return { userId };
   });

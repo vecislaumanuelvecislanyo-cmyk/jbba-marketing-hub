@@ -84,7 +84,9 @@ function AuthPage() {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       setBusy(false);
-      if (error) return toast.error("Credenciais inválidas ou email por confirmar.");
+      if (error) return toast.error(/confirm/i.test(error.message)
+        ? "Conta ainda não validada. Abra o link de validação enviado para o seu email."
+        : "Email ou palavra-passe incorretos.");
       const me = await fetchMe();
       if (!me || !me.roles.includes(roleByLogin[loginAs])) {
         await supabase.auth.signOut();
