@@ -35,7 +35,8 @@ export const employeesConfig: EntityConfig = {
 };
 
 const provinceField: FieldDef = { name: "province", label: "Província", type: "select", options: list(PROVINCES) };
-const serviceField = (lbl = "Serviço"): FieldDef => ({ name: "service", label: lbl, type: "select", options: list(SERVICES) });
+const CLIENT_SERVICES = ["Contabilidade", "Fiscalidade", "Recursos Humanos", "Consultoria"];
+const serviceField = (lbl = "Serviço", services = SERVICES): FieldDef => ({ name: "service", label: lbl, type: "select", options: list(services) });
 const SOURCES = list(["Website", "Referência", "Campanha", "Evento", "Chamada", "Redes sociais", "Visita de campo", "Outro"]);
 
 export const clientsConfig: EntityConfig = {
@@ -47,7 +48,7 @@ export const clientsConfig: EntityConfig = {
   filters: [
     { key: "status", label: "Estado", options: WORKFLOW_STATES },
     { key: "province", label: "Província", options: list(PROVINCES) },
-    { key: "service", label: "Serviço", options: list(SERVICES) },
+    { key: "service", label: "Serviço", options: list(CLIENT_SERVICES) },
   ],
   fields: [
     { name: "name", label: "Nome / Razão social", type: "text", required: true, wide: true },
@@ -59,7 +60,7 @@ export const clientsConfig: EntityConfig = {
     { name: "address", label: "Morada", type: "text" },
     { name: "city", label: "Cidade / Município", type: "text" },
     provinceField,
-    serviceField("Serviços contratados/interesse"),
+    serviceField("Serviços contratados/interesse", CLIENT_SERVICES),
     { name: "source", label: "Origem", type: "select", options: SOURCES },
     { name: "status", label: "Estado", type: "select", options: WORKFLOW_STATES, required: true, defaultValue: "pendente" },
     emp("assigned_to", "Gestor de conta"),
