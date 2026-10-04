@@ -22,5 +22,5 @@ export const NAV: { title: string; url: string; icon: typeof LayoutDashboard; ac
   { title: "Relatórios", url: "/relatorios", icon: BarChart3, access: "all", group: "Gestão" },
   { title: "Notificações", url: "/notificacoes", icon: Bell, access: "all", group: "Gestão" },
   { title: "Auditoria", url: "/auditoria", icon: ShieldCheck, access: "audit", group: "Sistema" },
-  { title: "Configurações", url: "/configuracoes", icon: Settings, access: "admin", group: "Sistema" },
+  { title: "Configurações", url: "/configuracoes", icon: Settings, access: "super_admin", group: "Sistema" },
 ];
