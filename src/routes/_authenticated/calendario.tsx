@@ -12,7 +12,7 @@ import { EntityForm } from "@/components/app/entity-form";
 import { activitiesConfig } from "@/lib/entities";
 import { useDatasets } from "@/lib/datasets";
 import { db, errMsg, useInvalidate } from "@/lib/data";
-import { canWriteOperational, isManager } from "@/lib/rbac";
+import { canExportMaps, canWriteOperational, isSuperAdmin } from "@/lib/rbac";
 import { fmtDate, label } from "@/lib/format";
 import { pageHead } from "@/lib/head";
 import { downloadCsv } from "@/lib/export";
@@ -88,6 +88,7 @@ function CalendarPage() {
   }
 
   async function deleteActivity() {
+    if (!isSuperAdmin(me.roles)) { setToDelete(null); return; }
     if (!toDelete || toDelete.kind !== "atividade") return setToDelete(null);
     const { error } = await db("activities").delete().eq("id", toDelete.id);
     if (error) toast.error(errMsg(error)); else { toast.success("Atividade removida do calendário."); inv("activities"); }
@@ -98,7 +99,7 @@ function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Calendário" description="Visão central de atividades, visitas e follow-ups em execução." actions={<div className="flex flex-wrap gap-2">{canWriteOperational(me.roles) && <><input id="calendar-import" type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCalendar(file); e.currentTarget.value = ""; }} /><Button onClick={() => setFormOpen(true)}><Plus />Adicionar atividade</Button><Button variant="outline" onClick={() => document.getElementById("calendar-import")?.click()}><FileUp />Importar</Button></>}<Button variant="outline" onClick={exportCalendar}><Download />Exportar</Button>{isManager(me.roles) && <Button variant="outline" onClick={analyzeCalendar} disabled={aiBusy}><BrainCircuit />{aiBusy ? "A analisar…" : "Analisar IA"}</Button>}</div>} />
+      <PageHeader title="Calendário" description="Visão central de atividades, visitas e follow-ups em execução." actions={<div className="flex flex-wrap gap-2">{canWriteOperational(me.roles) && <><input id="calendar-import" type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCalendar(file); e.currentTarget.value = ""; }} /><Button onClick={() => setFormOpen(true)}><Plus />Adicionar atividade</Button><Button variant="outline" onClick={() => document.getElementById("calendar-import")?.click()}><FileUp />Importar</Button></>}{canExportMaps(me.roles) && <Button variant="outline" onClick={exportCalendar}><Download />Exportar</Button>}{canExportMaps(me.roles) && <Button variant="outline" onClick={analyzeCalendar} disabled={aiBusy}><BrainCircuit />{aiBusy ? "A analisar…" : "Analisar IA"}</Button>}</div>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2"><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}><ChevronLeft /></Button><div className="min-w-40 text-center font-semibold">{cursor.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</div><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}><ChevronRight /></Button></div>
         <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-48"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{STATES.map((s) => <SelectItem key={s} value={s}>{label(s)}</SelectItem>)}</SelectContent></Select>
@@ -113,7 +114,7 @@ function CalendarPage() {
         </div>
       </Panel>
       <Panel title={"Atividades do mês (" + monthEvents.length + ")"}>
-        {monthEvents.length === 0 ? <EmptyState text="Não existem eventos para o período e estado selecionados." /> : <ul className="divide-y">{monthEvents.map((e) => <li key={e.kind + e.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><div className="font-medium">{e.title}</div><div className="text-sm text-muted-foreground">{fmtDate(e.date, true)} · {e.kind}{e.location ? " · " + e.location : ""}</div></div><div className="flex items-center gap-2"><StatusBadge value={e.status} />{e.kind === "atividade" && isManager(me.roles) && <Button size="icon" variant="ghost" onClick={() => setToDelete(e)}><Trash2 className="text-destructive" /></Button>}</div></li>)}</ul>}
+        {monthEvents.length === 0 ? <EmptyState text="Não existem eventos para o período e estado selecionados." /> : <ul className="divide-y">{monthEvents.map((e) => <li key={e.kind + e.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><div className="font-medium">{e.title}</div><div className="text-sm text-muted-foreground">{fmtDate(e.date, true)} · {e.kind}{e.location ? " · " + e.location : ""}</div></div><div className="flex items-center gap-2"><StatusBadge value={e.status} />{e.kind === "atividade" && isSuperAdmin(me.roles) && <Button size="icon" variant="ghost" onClick={() => setToDelete(e)}><Trash2 className="text-destructive" /></Button>}</div></li>)}</ul>}
       </Panel>
       <EntityForm open={formOpen} onOpenChange={setFormOpen} table={activitiesConfig.table} title={activitiesConfig.singular} fields={activitiesConfig.fields} validate={activitiesConfig.validate} invalidate={activitiesConfig.invalidate} />
 
