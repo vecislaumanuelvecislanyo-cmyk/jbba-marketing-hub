@@ -1,6 +1,6 @@
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(14);
+select plan(15);
 
 select has_table('public','user_roles','user_roles existe');
 select has_table('public','role_permissions','role_permissions existe');
@@ -9,6 +9,7 @@ select has_column('public','activities','status','activities suporta estado de w
 select has_column('public','targets','status','targets suporta estado de workflow');
 select has_function('public','has_permission',ARRAY['uuid','text'],'has_permission existe');
 select policies_are('public','leads',ARRAY['read scoped','insert scoped','update scoped','delete managers']);
+select policies_are('public','clients',ARRAY['read scoped','insert managers','insert scoped','update managers','update scoped','delete super admin only']);
 select policies_are('public','followups',ARRAY['read scoped','insert scoped','update scoped','delete managers']);
 select policies_are('public','employees',ARRAY['employees read','employees insert','employees update','employees delete']);
 select policies_are('public','user_roles',ARRAY['own or managers read roles','admin insert roles','admin update roles','admin delete roles']);
