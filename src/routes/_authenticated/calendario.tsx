@@ -12,7 +12,7 @@ import { EntityForm } from "@/components/app/entity-form";
 import { activitiesConfig } from "@/lib/entities";
 import { useDatasets } from "@/lib/datasets";
 import { db, errMsg, useInvalidate } from "@/lib/data";
-import { canExportMaps, canWriteOperational, isSuperAdmin } from "@/lib/rbac";
+import { canExportMaps, canWriteOperational, isManager, isSuperAdmin } from "@/lib/rbac";
 import { fmtDate, label } from "@/lib/format";
 import { pageHead } from "@/lib/head";
 import { downloadCsv } from "@/lib/export";
@@ -99,7 +99,7 @@ function CalendarPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title="Calendário" description="Visão central de atividades, visitas e follow-ups em execução." actions={<div className="flex flex-wrap gap-2">{canWriteOperational(me.roles) && <><input id="calendar-import" type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCalendar(file); e.currentTarget.value = ""; }} /><Button onClick={() => setFormOpen(true)}><Plus />Adicionar atividade</Button><Button variant="outline" onClick={() => document.getElementById("calendar-import")?.click()}><FileUp />Importar</Button></>}{canExportMaps(me.roles) && <Button variant="outline" onClick={exportCalendar}><Download />Exportar</Button>}{canExportMaps(me.roles) && <Button variant="outline" onClick={analyzeCalendar} disabled={aiBusy}><BrainCircuit />{aiBusy ? "A analisar…" : "Analisar IA"}</Button>}</div>} />
+      <PageHeader title="Calendário" description="Visão central de atividades, visitas e follow-ups em execução." actions={<div className="flex flex-wrap gap-2">{canWriteOperational(me.roles) && <><input id="calendar-import" type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCalendar(file); e.currentTarget.value = ""; }} /><Button onClick={() => setFormOpen(true)}><Plus />Adicionar atividade</Button><Button variant="outline" onClick={() => document.getElementById("calendar-import")?.click()}><FileUp />Importar</Button></>}{canExportMaps(me.roles) && <Button variant="outline" onClick={exportCalendar}><Download />Exportar</Button>}{isManager(me.roles) && <Button variant="outline" onClick={analyzeCalendar} disabled={aiBusy}><BrainCircuit />{aiBusy ? "A analisar…" : "Analisar IA"}</Button>}</div>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2"><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}><ChevronLeft /></Button><div className="min-w-40 text-center font-semibold">{cursor.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</div><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}><ChevronRight /></Button></div>
         <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-48"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{STATES.map((s) => <SelectItem key={s} value={s}>{label(s)}</SelectItem>)}</SelectContent></Select>
