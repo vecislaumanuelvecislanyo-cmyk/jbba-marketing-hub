@@ -60,7 +60,7 @@ export const createManagedUser = createServerFn({ method: "POST" })
     });
 
     if (data.role === "promotor" && !context.actorRoles.includes("super_admin")) {
-      throw new Error("Apenas o Super ADM pode criar contas de Técnico/Promotor.");
+      throw new Error("Apenas o Super ADM pode criar contas de Promotor.");
     }
 
     if (data.role === "super_admin" && !context.actorRoles.includes("super_admin")) {
