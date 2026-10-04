@@ -22,13 +22,14 @@ export const isPromotor = (r: AppRole[]) => r.includes("promotor");
 export const canWriteOperational = (r: AppRole[]) => isManager(r) || isPromotor(r);
 export const canAudit = (r: AppRole[]) => isAdmin(r) || r.includes("diretor_geral");
 
-export type Access = "all" | "managers" | "audit" | "admin";
+export type Access = "all" | "managers" | "audit" | "admin" | "super_admin";
 export const hasAccess = (roles: AppRole[], access: Access) => {
   switch (access) {
     case "all": return true;
     case "managers": return isManager(roles);
     case "audit": return canAudit(roles);
     case "admin": return isAdmin(roles);
+    case "super_admin": return isSuperAdmin(roles);
   }
 };
 
