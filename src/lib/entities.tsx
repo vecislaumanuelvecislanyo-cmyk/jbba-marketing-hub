@@ -40,7 +40,8 @@ const SOURCES = list(["Website", "Referência", "Campanha", "Evento", "Chamada",
 
 export const clientsConfig: EntityConfig = {
   table: "clients", title: "Clientes", singular: "cliente", order: "name", createLabel: "Registar cliente",
-  description: "Carteira de clientes com visão 360°.",
+  description: "Carteira de empresas e clientes com visão 360°. As promotoras registam e acompanham as próprias empresas; a eliminação é exclusiva do SUPER ADM.",
+  write: "operational", deleteBy: "super_admin", exportBy: "marketing_manager",
   searchKeys: ["name", "nif", "city", "sector", "email", "contact_name"],
   dateField: "created_at",
   filters: [
