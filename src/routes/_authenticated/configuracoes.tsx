@@ -20,7 +20,7 @@ import { ExtraPermissionsPanel } from "@/components/app/extra-permissions";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: pageHead("Configurações", "Utilizadores, perfis e permissões."),
-  component: () => <RequireAccess access="admin"><Settings /></RequireAccess>,
+  component: () => <RequireAccess access="super_admin"><Settings /></RequireAccess>,
 });
 
 const NONE = "__none__";
