@@ -21,7 +21,7 @@ const reportsConfig: EntityConfig = {
   searchKeys: ["report_type"],
   dateField: "period_start",
   importable: true,
-  deleteBy: "admin",
+  deleteBy: "super_admin",
   filters: [{ key: "report_type", label: "Tipo", options: [
     { value: "diario", label: "Diário" }, { value: "semanal", label: "Semanal" },
     { value: "mensal", label: "Mensal" }, { value: "trimestral", label: "Trimestral" }, { value: "anual", label: "Anual" },
