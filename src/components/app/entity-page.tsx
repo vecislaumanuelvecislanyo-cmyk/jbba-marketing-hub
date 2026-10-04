@@ -15,7 +15,7 @@ import { DemoBadge, EmptyState, ErrorState, LoadingState, PageHeader } from "./c
 import { EntityForm, type FieldDef } from "./entity-form";
 import { db, errMsg, useInvalidate, useLookup, useTable, type LookupKey, type Row } from "@/lib/data";
 import { useMe } from "@/lib/auth";
-import { canWriteOperational, isAdmin, isManager } from "@/lib/rbac";
+import { canExportMaps, canWriteOperational, isAdmin, isManager, isSuperAdmin } from "@/lib/rbac";
 
 export type Lookups = Record<LookupKey, Record<string, string>>;
 export type ColumnDef = { key: string; label: string; render?: (row: Row, l: Lookups) => ReactNode; className?: string };
@@ -32,7 +32,8 @@ export type EntityConfig = {
   order?: string;
   /** who may create/edit: operational = managers + promotor (scoped by RLS), managers, admin */
   write?: "operational" | "managers" | "admin";
-  deleteBy?: "managers" | "admin";
+  deleteBy?: "managers" | "admin" | "super_admin";
+  exportBy?: "marketing_manager" | "managers";
   validate?: (v: Record<string, string>) => string | null;
   invalidate?: string[];
   headerExtra?: ReactNode;
@@ -68,7 +69,8 @@ export function EntityPage({ config }: { config: EntityConfig }) {
   const [toInvalidate, setToInvalidate] = useState<Row | null>(null);
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
-  const canDelete = config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
+  const canDelete = config.deleteBy === "super_admin" ? isSuperAdmin(me.roles) : config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
+  const canExport = config.exportBy === "marketing_manager" ? canExportMaps(me.roles) : config.exportBy === "managers" ? isManager(me.roles) : true;
 
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
@@ -176,7 +178,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
           {config.headerExtra}
           {config.importable && canWrite && <><input id={"import-" + config.table} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCsv(file); e.currentTarget.value = ""; }} /><Button variant="outline" onClick={openImport}><FileUp />Importar</Button></>}
           {config.analyzable && <Button variant="outline" onClick={() => setAnalysisOpen(true)}><BrainCircuit />Analisar</Button>}
-          <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />Exportar</Button>
+          {canExport && <Button variant="outline" onClick={exportCsv} disabled={!rows.length}><Download />Exportar</Button>}
           {canWrite && <Button onClick={() => { setEditing(null); setOpen(true); }}><Plus />{config.createLabel ?? "Novo"}</Button>}
         </>}
       />
