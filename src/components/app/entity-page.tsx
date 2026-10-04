@@ -70,7 +70,7 @@ export function EntityPage({ config }: { config: EntityConfig }) {
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
   const canDelete = config.deleteBy === "super_admin" ? isSuperAdmin(me.roles) : config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
-  const canExport = config.exportBy === "marketing_manager" ? canExportMaps(me.roles) : config.exportBy === "managers" ? isManager(me.roles) : true;
+  const canExport = config.exportBy === "managers" ? isManager(me.roles) : canExportMaps(me.roles);
 
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();
