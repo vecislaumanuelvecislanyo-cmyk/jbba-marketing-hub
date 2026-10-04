@@ -4,6 +4,7 @@ import {
   canCreate,
   canDelete,
   canEdit,
+  canExportMaps,
   canWriteOperational,
   hasAccess,
   isAdmin,
@@ -47,6 +48,26 @@ describe("RBAC", () => {
     expect(canEdit(r, "operational")).toBe(true);
     expect(canDelete(r, "admin")).toBe(false);
     expect(hasAccess(r, "admin")).toBe(false);
+  });
+
+  test("promotora pode operar mas não exportar mapas nem apagar", () => {
+    const r = roles("promotor");
+    expect(canCreate(r, "operational")).toBe(true);
+    expect(canEdit(r, "operational")).toBe(true);
+    expect(canExportMaps(r)).toBe(false);
+    expect(canDelete(r, "super_admin")).toBe(false);
+  });
+
+  test("gestora de marketing pode exportar mapas mas não apagar", () => {
+    const r = roles("gestor_marketing");
+    expect(canExportMaps(r)).toBe(true);
+    expect(canDelete(r, "super_admin")).toBe(false);
+  });
+
+  test("super admin pode exportar mapas e apagar", () => {
+    const r = roles("super_admin");
+    expect(canExportMaps(r)).toBe(true);
+    expect(canDelete(r, "super_admin")).toBe(true);
   });
 
   test("visualizador não pode criar, editar ou eliminar", () => {
