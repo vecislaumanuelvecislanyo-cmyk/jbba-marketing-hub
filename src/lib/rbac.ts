@@ -5,8 +5,8 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Administrador",
   diretor_geral: "Diretor Geral",
   gestor_marketing: "Gestor de Marketing",
-  promotor: "Técnico/Promotor",
-  visualizador: "Visualizador",
+  promotor: "Promotor",
+  visualizador: "Técnico",
 };
 
 export const ROLE_ORDER: AppRole[] = ["super_admin", "admin", "diretor_geral", "gestor_marketing", "promotor", "visualizador"];
