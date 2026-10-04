@@ -12,6 +12,7 @@ import { useLookup } from "@/lib/data";
 import { pct, targetActual } from "@/lib/targets";
 import { useMe } from "@/lib/auth";
 import { ROLE_LABELS } from "@/lib/rbac";
+import { TechnicianPanel } from "@/components/app/technician-panel";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard · JBBA Marketing" }, { name: "description", content: "Indicadores executivos da equipa comercial." }, { property: "og:title", content: "Dashboard · JBBA Marketing" }, { property: "og:description", content: "Indicadores executivos da equipa comercial." }] }),
@@ -99,6 +100,7 @@ function Dashboard() {
           </Select>
         }
       />
+      {me.roles.includes("promotor") && <TechnicianPanel employeeId={me.employeeId} />}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <KpiCard accent label="Receita" value={fmtMoney(k.revenue)} hint={`${k.contracts} contrato(s)`} icon={TrendingUp} />
         <KpiCard label="Leads" value={k.leads} icon={Target} />
