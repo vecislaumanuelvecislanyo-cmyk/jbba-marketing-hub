@@ -88,10 +88,8 @@ function AuthPage() {
         ? "Conta ainda não validada. Abra o link de validação enviado para o seu email."
         : "Email ou palavra-passe incorretos.");
       const me = await fetchMe();
-      if (!me || !me.roles.includes(roleByLogin[loginAs])) {
-        await supabase.auth.signOut();
-        setBusy(false);
-        return toast.error("A conta autenticada não possui o perfil selecionado.");
+      if (me && !me.roles.includes(roleByLogin[loginAs])) {
+        toast.info("Sessão iniciada com o perfil real da sua conta.");
       }
       nav({ to: "/dashboard" });
     } else {
