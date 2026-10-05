@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Plus, ShieldCheck, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -182,5 +183,28 @@ function Settings() {
         </div>
       </Panel>
     </div>
+  );
+}
+
+function DemoPurgePanel() {
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const qc = useQueryClient();
+  async function purge() {
+    setBusy(true);
+    const { data, error } = await supabase.rpc("purge_demo_data");
+    setBusy(false); setOpen(false);
+    if (error) return toast.error(errMsg(error));
+    toast.success(`${data ?? 0} registo(s) DEMO removido(s).`);
+    qc.invalidateQueries();
+  }
+  return (
+    <Panel title="Dados de demonstração">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">Remove todos os registos marcados como DEMO. Os dados reais e as contas de utilizador não são afetados. A operação fica registada na auditoria.</p>
+        <Button variant="destructive" onClick={() => setOpen(true)} disabled={busy}><Trash2 />Remover dados DEMO</Button>
+      </div>
+      <AlertDialog open={open} onOpenChange={setOpen}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Remover todos os dados DEMO?</AlertDialogTitle><AlertDialogDescription>Esta operação é irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={purge}>Remover</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
+    </Panel>
   );
 }
