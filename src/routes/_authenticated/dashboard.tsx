@@ -7,7 +7,7 @@ import { GoalBar, KpiCard } from "@/components/app/kpi";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { periodRange, today, useDatasets, within, type Period } from "@/lib/datasets";
-import { fmtMoney, fmtPct, label, STAGES } from "@/lib/format";
+import { fmtMoney, fmtPct, label, PROVINCES, SERVICES, STAGES } from "@/lib/format";
 import { useLookup } from "@/lib/data";
 import { pct, targetActual } from "@/lib/targets";
 import { useMe } from "@/lib/auth";
