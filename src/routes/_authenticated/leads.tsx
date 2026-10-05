@@ -16,6 +16,7 @@ import { useMe } from "@/lib/auth";
 import { canWriteOperational } from "@/lib/rbac";
 import { cn } from "@/lib/utils";
 import { suggestFollowup } from "@/lib/ai-followup";
+import { logEvent } from "@/lib/export";
 
 export const Route = createFileRoute("/_authenticated/leads")({
   head: pageHead("Leads", "Pipeline comercial em Kanban."),
@@ -49,17 +50,34 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
   const [aiLead, setAiLead] = useState<Row | null>(null);
   const [aiResult, setAiResult] = useState<{ summary: string; action: string; type: string; priority: string; dueInDays: number } | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [convert, setConvert] = useState<Row | null>(null);
+  const [converting, setConverting] = useState(false);
 
   async function move(id: string, stage: string, lost_reason?: string) {
     const { error } = await db("leads").update({ stage, ...(lost_reason ? { lost_reason } : {}) }).eq("id", id);
-    if (error) toast.error(errMsg(error)); else { toast.success("Fase atualizada"); inv("leads"); }
+    if (error) { toast.error(errMsg(error)); return false; }
+    toast.success("Fase atualizada"); inv("leads"); return true;
   }
-  function drop(stage: string) {
+  async function drop(stage: string) {
     setOver(null);
     const lead = q.data?.find((l) => l.id === dragId);
     if (!lead || lead.stage === stage) return;
     if (stage === "perdido") setLost({ id: lead.id, reason: "" });
-    else move(lead.id, stage);
+    else if ((await move(lead.id, stage)) && stage === "ganho" && !lead.client_id) setConvert(lead);
+  }
+  async function convertToClient(lead: Row) {
+    setConverting(true);
+    const { data: client, error } = await db("clients").insert({
+      name: lead.company || lead.contact_name || lead.title, contact_name: lead.contact_name ?? null,
+      email: lead.email ?? null, phone: lead.phone ?? null, province: lead.province ?? null,
+      service: lead.service ?? null, source: lead.source ?? null, assigned_to: lead.assigned_to ?? null, status: "ativo",
+    }).select("id").single();
+    if (error || !client) { setConverting(false); return toast.error(errMsg(error)); }
+    const { error: e2 } = await db("leads").update({ client_id: client.id }).eq("id", lead.id);
+    setConverting(false); setConvert(null);
+    if (e2) return toast.error(errMsg(e2));
+    await logEvent("CONVERT", "leads", lead.id, { client_id: client.id });
+    toast.success("Lead convertida em cliente."); inv("leads"); inv("clients");
   }
 
   async function generateFollowup(lead: Row) {
@@ -128,6 +146,7 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
                         </span>
                       </div>
                       <div className="mt-1 text-xs text-muted-foreground">{l.company ?? l.contact_name ?? "—"}</div>
+                      {l.stage === "ganho" && !l.client_id && canWrite && <span role="button" tabIndex={0} onClick={(e) => { e.stopPropagation(); setConvert(l); }} onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setConvert(l); } }} className="mt-2 inline-block text-xs font-medium text-primary underline">Converter em cliente</span>}
                       <div className="mt-2 flex items-center justify-between text-xs">
                         <span className="font-semibold">{fmtMoney(l.estimated_value)}</span>
                         <span className="truncate text-muted-foreground">{emps.byId[l.assigned_to] ?? "Sem responsável"}</span>
@@ -163,6 +182,16 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
           ) : <p className="text-sm text-muted-foreground">Não foi possível gerar uma sugestão.</p>}
           <DialogFooter>
             <Button variant="outline" onClick={() => setAiLead(null)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={!!convert} onOpenChange={(o) => !o && setConvert(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Converter em cliente?</DialogTitle></DialogHeader>
+          <p className="text-sm text-muted-foreground">A lead "{convert?.title}" foi ganha. Deseja criar o cliente com os dados da lead e ligá-los?</p>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConvert(null)}>Agora não</Button>
+            <Button disabled={converting} onClick={() => convert && convertToClient(convert)}>{converting ? "A converter…" : "Converter em cliente"}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
