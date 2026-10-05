@@ -170,6 +170,7 @@ function Settings() {
       </Dialog>
       <AlertDialog open={!!toDeleteUser} onOpenChange={(open) => !open && setToDeleteUser(null)}><AlertDialogContent><AlertDialogHeader><AlertDialogTitle>Apagar conta de utilizador?</AlertDialogTitle><AlertDialogDescription>Esta operação remove a conta de autenticação, perfil, funções e acessos. É irreversível.</AlertDialogDescription></AlertDialogHeader><AlertDialogFooter><AlertDialogCancel>Cancelar</AlertDialogCancel><AlertDialogAction className="bg-destructive text-destructive-foreground hover:bg-destructive/90" onClick={() => toDeleteUser && deleteUserAccount(toDeleteUser.id)}>Apagar definitivamente</AlertDialogAction></AlertDialogFooter></AlertDialogContent></AlertDialog>
       {me.roles.includes("super_admin") && <ExtraPermissionsPanel />}
+      {me.roles.includes("super_admin") && <DemoPurgePanel />}
       <Panel title="Matriz de permissões">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           {ROLE_ORDER.map((r) => (
