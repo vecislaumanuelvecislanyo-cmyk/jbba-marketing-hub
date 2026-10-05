@@ -1302,6 +1302,7 @@ export type Database = {
     Functions: {
       can_read_all: { Args: { _user_id: string }; Returns: boolean }
       current_employee_id: { Args: never; Returns: string }
+      generate_alerts: { Args: never; Returns: number }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _permission: string; _user_id: string }
@@ -1320,6 +1321,7 @@ export type Database = {
         Args: { _action: string; _data: Json; _record: string; _table: string }
         Returns: undefined
       }
+      purge_demo_data: { Args: never; Returns: number }
     }
     Enums: {
       app_role:

@@ -24,10 +24,26 @@ const CHART = ["var(--chart-1)", "var(--chart-3)", "var(--chart-2)", "var(--char
 
 function Dashboard() {
   const me = useMe();
-  const d = useDatasets();
+  const raw = useDatasets();
   const emps = useLookup("employees");
   const [period, setPeriod] = useState<Period>("mes");
+  const [emp, setEmp] = useState("all");
+  const [prov, setProv] = useState("all");
+  const [svc, setSvc] = useState("all");
   const range = periodRange(period);
+  const d = useMemo(() => {
+    const leadIds = new Set(raw.leads.filter((l) => (prov === "all" || l.province === prov) && (svc === "all" || l.service === svc)).map((l) => l.id));
+    const byEmp = <T extends Record<string, unknown>>(rows: T[], f = "employee_id") => rows.filter((r) => emp === "all" || r[f] === emp);
+    const byLead = <T extends Record<string, unknown>>(rows: T[]) => (prov === "all" && svc === "all") ? rows : rows.filter((r) => r["lead_id"] && leadIds.has(r["lead_id"] as string));
+    return {
+      ...raw,
+      leads: byEmp(raw.leads, "assigned_to").filter((l) => leadIds.has(l.id)),
+      visits: byLead(byEmp(raw.visits)), activities: byLead(byEmp(raw.activities)),
+      proposals: byLead(byEmp(raw.proposals)), contracts: byEmp(raw.contracts).filter((c) => (prov === "all" && svc === "all") || raw.proposals.some((p) => p.id === c.proposal_id && p.lead_id && leadIds.has(p.lead_id))),
+      followups: byLead(byEmp(raw.followups)),
+      targets: raw.targets.filter((t) => (emp === "all" || t.employee_id === emp) && (prov === "all" || t.province === prov) && (svc === "all" || t.service === svc)),
+    };
+  }, [raw, emp, prov, svc]);
 
   const k = useMemo(() => {
     const leads = d.leads.filter((l) => within(l.created_at, range));
@@ -91,13 +107,27 @@ function Dashboard() {
         title={`Olá, ${me.fullName.split(" ")[0]}`}
         description={`${ROLE_LABELS[me.role]} · indicadores calculados a partir dos dados reais${me.role === "promotor" ? " (apenas a sua carteira)" : ""}.`}
         actions={
-          <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
-            <SelectTrigger className="w-44 bg-card"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mes">Este mês</SelectItem><SelectItem value="30d">Últimos 30 dias</SelectItem>
-              <SelectItem value="trimestre">Este trimestre</SelectItem><SelectItem value="ano">Este ano</SelectItem><SelectItem value="tudo">Todo o período</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap gap-2">
+            <Select value={period} onValueChange={(v) => setPeriod(v as Period)}>
+              <SelectTrigger className="w-40 bg-card"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="mes">Este mês</SelectItem><SelectItem value="30d">Últimos 30 dias</SelectItem>
+                <SelectItem value="trimestre">Este trimestre</SelectItem><SelectItem value="ano">Este ano</SelectItem><SelectItem value="tudo">Todo o período</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={emp} onValueChange={setEmp}>
+              <SelectTrigger className="w-44 bg-card"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todos os técnicos</SelectItem>{emps.items.map((e) => <SelectItem key={e.value} value={e.value}>{e.label}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={prov} onValueChange={setProv}>
+              <SelectTrigger className="w-40 bg-card"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todas as províncias</SelectItem>{PROVINCES.map((p) => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+            </Select>
+            <Select value={svc} onValueChange={setSvc}>
+              <SelectTrigger className="w-40 bg-card"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">Todos os serviços</SelectItem>{SERVICES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
+            </Select>
+          </div>
         }
       />
       {me.roles.includes("promotor") && <TechnicianPanel employeeId={me.employeeId} />}

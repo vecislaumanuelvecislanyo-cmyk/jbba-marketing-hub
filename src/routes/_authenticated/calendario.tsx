@@ -27,6 +27,7 @@ function CalendarPage() {
   const d = useDatasets();
   const inv = useInvalidate();
   const [cursor, setCursor] = useState(() => new Date());
+  const [mode, setMode] = useState<"mes" | "semana">("mes");
   const [status, setStatus] = useState("all");
   const [formOpen, setFormOpen] = useState(false);
   const [toDelete, setToDelete] = useState<CalendarEvent | null>(null);
@@ -41,11 +42,16 @@ function CalendarPage() {
     return [...activities, ...visits, ...followups].filter((x) => status === "all" || x.status === status).sort((a,b) => String(a.date).localeCompare(String(b.date)));
   }, [d.activities, d.visits, d.followups, status]);
 
-  const monthEvents = events.filter((e) => { const dt = new Date(e.date); return dt.getFullYear() === cursor.getFullYear() && dt.getMonth() === cursor.getMonth(); });
+  const weekStart = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - ((cursor.getDay() + 6) % 7));
+  const weekDays = Array.from({ length: 7 }, (_, i) => new Date(weekStart.getFullYear(), weekStart.getMonth(), weekStart.getDate() + i));
+  const sameDay = (a: Date, b: Date) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  const monthEvents = events.filter((e) => { const dt = new Date(e.date); return mode === "semana" ? weekDays.some((w) => sameDay(w, dt)) : dt.getFullYear() === cursor.getFullYear() && dt.getMonth() === cursor.getMonth(); });
   const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
   const days = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
   const offset = (first.getDay() + 6) % 7;
-  const cells = Array.from({ length: offset + days }, (_, i) => i < offset ? null : i - offset + 1);
+  const cells: (Date | null)[] = mode === "semana" ? weekDays : Array.from({ length: offset + days }, (_, i) => i < offset ? null : new Date(cursor.getFullYear(), cursor.getMonth(), i - offset + 1));
+  const shift = (n: number) => setCursor(mode === "semana" ? new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 7 * n) : new Date(cursor.getFullYear(), cursor.getMonth() + n, 1));
+  const title = mode === "semana" ? `${weekDays[0]!.toLocaleDateString("pt-PT", { day: "2-digit", month: "short" })} – ${weekDays[6]!.toLocaleDateString("pt-PT", { day: "2-digit", month: "short", year: "numeric" })}` : cursor.toLocaleDateString("pt-PT", { month: "long", year: "numeric" });
 
 
   async function importCalendar(file: File) {
@@ -101,19 +107,21 @@ function CalendarPage() {
     <div className="space-y-6">
       <PageHeader title="Calendário" description="Visão central de atividades, visitas e follow-ups em execução." actions={<div className="flex flex-wrap gap-2">{canWriteOperational(me.roles) && <><input id="calendar-import" type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const file = e.target.files?.[0]; if (file) void importCalendar(file); e.currentTarget.value = ""; }} /><Button onClick={() => setFormOpen(true)}><Plus />Adicionar atividade</Button><Button variant="outline" onClick={() => document.getElementById("calendar-import")?.click()}><FileUp />Importar</Button></>}{canExportMaps(me.roles) && <Button variant="outline" onClick={exportCalendar}><Download />Exportar</Button>}{isManager(me.roles) && <Button variant="outline" onClick={analyzeCalendar} disabled={aiBusy}><BrainCircuit />{aiBusy ? "A analisar…" : "Analisar IA"}</Button>}</div>} />
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-2"><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() - 1, 1))}><ChevronLeft /></Button><div className="min-w-40 text-center font-semibold">{cursor.toLocaleDateString("pt-PT", { month: "long", year: "numeric" })}</div><Button variant="outline" size="icon" onClick={() => setCursor(new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1))}><ChevronRight /></Button></div>
+        <div className="flex items-center gap-2"><Button variant="outline" size="icon" onClick={() => shift(-1)}><ChevronLeft /></Button><div className="min-w-40 text-center font-semibold">{title}</div><Button variant="outline" size="icon" onClick={() => shift(1)}><ChevronRight /></Button>
+          <div className="ml-2 flex rounded-md border bg-card p-0.5"><Button size="sm" variant={mode === "mes" ? "secondary" : "ghost"} onClick={() => setMode("mes")}>Mês</Button><Button size="sm" variant={mode === "semana" ? "secondary" : "ghost"} onClick={() => setMode("semana")}>Semana</Button></div></div>
         <Select value={status} onValueChange={setStatus}><SelectTrigger className="w-48"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="all">Todos os estados</SelectItem>{STATES.map((s) => <SelectItem key={s} value={s}>{label(s)}</SelectItem>)}</SelectContent></Select>
       </div>
       <Panel>
         <div className="grid grid-cols-7 border-l border-t text-xs">
           {["Seg","Ter","Qua","Qui","Sex","Sáb","Dom"].map((x) => <div key={x} className="border-b border-r bg-muted/40 p-2 font-semibold">{x}</div>)}
           {cells.map((day, i) => {
-            const dayEvents = day ? monthEvents.filter((e) => new Date(e.date).getDate() === day) : [];
-            return <div key={i} className="min-h-28 border-b border-r p-2"><div className="mb-1 font-medium text-muted-foreground">{day ?? ""}</div><div className="space-y-1">{dayEvents.slice(0, 4).map((e) => <button type="button" key={e.kind + e.id} className="w-full rounded-md border p-1 text-left hover:bg-muted" onClick={() => e.kind === "atividade" && setToDelete(e)}><div className="truncate font-medium">{e.title}</div><div className="truncate text-[10px] text-muted-foreground">{e.kind} · {label(e.status)}</div></button>)}{dayEvents.length > 4 && <div className="text-[10px] text-muted-foreground">+{dayEvents.length - 4} eventos</div>}</div></div>;
+            const dayEvents = day ? monthEvents.filter((e) => sameDay(new Date(e.date), day)) : [];
+            const max = mode === "semana" ? 20 : 4;
+            return <div key={i} className={(mode === "semana" ? "min-h-64" : "min-h-28") + " border-b border-r p-2"}><div className="mb-1 font-medium text-muted-foreground">{day ? day.getDate() : ""}</div><div className="space-y-1">{dayEvents.slice(0, max).map((e) => <button type="button" key={e.kind + e.id} className="w-full rounded-md border p-1 text-left hover:bg-muted" onClick={() => e.kind === "atividade" && setToDelete(e)}><div className="truncate font-medium">{e.title}</div><div className="truncate text-[10px] text-muted-foreground">{e.kind} · {label(e.status)}</div></button>)}{dayEvents.length > max && <div className="text-[10px] text-muted-foreground">+{dayEvents.length - max} eventos</div>}</div></div>;
           })}
         </div>
       </Panel>
-      <Panel title={"Atividades do mês (" + monthEvents.length + ")"}>
+      <Panel title={(mode === "semana" ? "Eventos da semana (" : "Eventos do mês (") + monthEvents.length + ")"}>
         {monthEvents.length === 0 ? <EmptyState text="Não existem eventos para o período e estado selecionados." /> : <ul className="divide-y">{monthEvents.map((e) => <li key={e.kind + e.id} className="flex flex-wrap items-center justify-between gap-3 py-3"><div><div className="font-medium">{e.title}</div><div className="text-sm text-muted-foreground">{fmtDate(e.date, true)} · {e.kind}{e.location ? " · " + e.location : ""}</div></div><div className="flex items-center gap-2"><StatusBadge value={e.status} />{e.kind === "atividade" && isSuperAdmin(me.roles) && <Button size="icon" variant="ghost" onClick={() => setToDelete(e)}><Trash2 className="text-destructive" /></Button>}</div></li>)}</ul>}
       </Panel>
       <EntityForm open={formOpen} onOpenChange={setFormOpen} table={activitiesConfig.table} title={activitiesConfig.singular} fields={activitiesConfig.fields} validate={activitiesConfig.validate} invalidate={activitiesConfig.invalidate} />

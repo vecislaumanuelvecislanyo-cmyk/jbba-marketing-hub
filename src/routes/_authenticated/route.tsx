@@ -46,6 +46,13 @@ function Layout() {
     return () => data.subscription.unsubscribe();
   }, [nav]);
 
+  useEffect(() => {
+    // Automatic alerts: overdue follow-ups and leads without movement for 14 days.
+    void supabase.rpc("generate_alerts").then(({ data }) => {
+      if (data && data > 0) qc.invalidateQueries({ queryKey: ["notifications"] });
+    });
+  }, [qc]);
+
   async function changePassword() {
     if (password.length < 8) return toast.error("A palavra-passe deve ter pelo menos 8 caracteres.");
     if (password !== confirmPassword) return toast.error("As palavras-passe não coincidem.");
