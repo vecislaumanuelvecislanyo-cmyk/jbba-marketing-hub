@@ -57,6 +57,27 @@
       "when": 1791188917954,
       "tag": "0007_alerts_and_demo_purge",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791247743115,
+      "tag": "0008_super_admin_only_delete_promotor_clients",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791247785575,
+      "tag": "0009_promotor_employee_on_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791247825345,
+      "tag": "0010_fix_clients_status_default",
+      "breakpoints": true
     }
   ]
 }

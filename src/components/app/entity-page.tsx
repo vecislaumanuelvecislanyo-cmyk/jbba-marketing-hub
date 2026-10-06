@@ -69,8 +69,8 @@ export function EntityPage({ config }: { config: EntityConfig }) {
   const [toInvalidate, setToInvalidate] = useState<Row | null>(null);
 
   const canWrite = config.write === "admin" ? isAdmin(me.roles) : config.write === "managers" ? isManager(me.roles) : canWriteOperational(me.roles);
-  const canDelete = config.deleteBy === "super_admin" ? isSuperAdmin(me.roles) : config.deleteBy === "admin" ? isAdmin(me.roles) : isManager(me.roles);
-  const canExport = config.exportBy === "managers" ? isManager(me.roles) : canExportMaps(me.roles);
+  const canDelete = isSuperAdmin(me.roles);
+  const canExport = canExportMaps(me.roles);
 
   const rows = useMemo(() => {
     const s = search.trim().toLowerCase();

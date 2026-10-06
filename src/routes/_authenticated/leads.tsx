@@ -70,7 +70,7 @@ function Board({ toggle }: { toggle: React.ReactNode }) {
     const { data: client, error } = await db("clients").insert({
       name: lead.company || lead.contact_name || lead.title, contact_name: lead.contact_name ?? null,
       email: lead.email ?? null, phone: lead.phone ?? null, province: lead.province ?? null,
-      service: lead.service ?? null, source: lead.source ?? null, assigned_to: lead.assigned_to ?? null, status: "ativo",
+      service: lead.service ?? null, source: lead.source ?? null, assigned_to: lead.assigned_to ?? null, status: "aprovado",
     }).select("id").single();
     if (error || !client) { setConverting(false); return toast.error(errMsg(error)); }
     const { error: e2 } = await db("leads").update({ client_id: client.id }).eq("id", lead.id);
