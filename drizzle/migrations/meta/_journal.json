@@ -64,6 +64,13 @@
       "when": 1791247743115,
       "tag": "0008_super_admin_only_delete_promotor_clients",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1791247785575,
+      "tag": "0009_promotor_employee_on_role",
+      "breakpoints": true
     }
   ]
 }
