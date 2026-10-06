@@ -9,9 +9,9 @@
 - [x] Typecheck e build de produção validados
 
 ## Pendente (fases seguintes)
-- [ ] Converter lead ganha em cliente
-- [ ] Filtros técnico/província/serviço no Dashboard
-- [ ] Calendário mensal/semanal
-- [ ] Relatórios diário→anual com exportação
-- [ ] Alertas automáticos (follow-ups atrasados, leads paradas)
-- [ ] Botão "Remover dados DEMO" em Configurações
+- [x] Converter lead ganha em cliente
+- [x] Filtros técnico/província/serviço no Dashboard
+- [x] Calendário mensal/semanal
+- [x] Relatórios diário→anual com exportação
+- [x] Alertas automáticos (follow-ups atrasados, leads paradas)
+- [x] Botão "Remover dados DEMO" em Configurações
