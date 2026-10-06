@@ -12,7 +12,7 @@ import { EmptyState, ErrorState, LoadingState, PageHeader, Panel, StatusBadge } 
 import { db, errMsg, useInvalidate, useTable } from "@/lib/data";
 import { downloadCsv, logEvent } from "@/lib/export";
 import { useMe } from "@/lib/auth";
-import { canWriteOperational } from "@/lib/rbac";
+import { canExportMaps, canWriteOperational } from "@/lib/rbac";
 import { pageHead } from "@/lib/head";
 
 export const Route = createFileRoute("/_authenticated/relatorios-campo")({
@@ -128,7 +128,7 @@ function FieldReportsPage() {
           {canWrite && <><Button variant="outline" onClick={template}><Download />Modelo</Button>
             <Button variant="outline" onClick={() => fileRef.current?.click()}><Upload />Importar</Button>
             <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) importCsv(f); e.target.value = ""; }} /></>}
-          <Button variant="outline" onClick={exportCsv}><Download />Exportar</Button>
+          {canExportMaps(me.roles) && <Button variant="outline" onClick={exportCsv}><Download />Exportar</Button>}
           {canWrite && <Button onClick={() => setForm(empty())}><Plus />Novo relatório</Button>}
         </div>} />
       <Panel>
@@ -150,7 +150,7 @@ function FieldReportsPage() {
                     {isSuper && r.status === "enviado" && <>
                       <Button size="sm" variant="ghost" title="Aprovar" onClick={() => setReview({ id: r.id, status: "aprovado", notes: "" })}><CheckCircle2 /></Button>
                       <Button size="sm" variant="ghost" className="text-destructive" title="Rejeitar" onClick={() => setReview({ id: r.id, status: "rejeitado", notes: "" })}><XCircle /></Button></>}
-                    {((mine && r.status === "rascunho") || isSuper) && <Button size="sm" variant="ghost" className="text-destructive" title="Eliminar" onClick={() => remove(r.id)}><Trash2 /></Button>}
+                    {isSuper && <Button size="sm" variant="ghost" className="text-destructive" title="Eliminar" onClick={() => remove(r.id)}><Trash2 /></Button>}
                   </TableCell>
                 </TableRow>
               );
