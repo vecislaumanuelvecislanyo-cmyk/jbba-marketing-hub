@@ -71,6 +71,13 @@
       "when": 1791247785575,
       "tag": "0009_promotor_employee_on_role",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791247825345,
+      "tag": "0010_fix_clients_status_default",
+      "breakpoints": true
     }
   ]
 }
