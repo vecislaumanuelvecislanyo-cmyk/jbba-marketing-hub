@@ -15,7 +15,7 @@ import { fmtDate, fmtMoney, label } from "@/lib/format";
 import { pageHead } from "@/lib/head";
 import { pct, targetActual } from "@/lib/targets";
 import { useMe } from "@/lib/auth";
-import { canWriteOperational, isManager } from "@/lib/rbac";
+import { canWriteOperational, isManager, isSuperAdmin } from "@/lib/rbac";
 
 export const Route = createFileRoute("/_authenticated/minha-atividade")({
   head: pageHead("Minha Atividade", "Agenda e tarefas do dia."),
